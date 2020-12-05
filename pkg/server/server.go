@@ -10,6 +10,7 @@ import (
 type Server struct {
 	upgrader      websocket.Upgrader
 	workerService *WorkerService
+	httpServer    *http.Server
 }
 
 // NewServer creates a new instance of server.
@@ -33,12 +34,21 @@ func (s *Server) Run() error {
 		return err
 	}
 
-	server := &http.Server{Addr: "0.0.0.0:9009", Handler: router}
-	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	s.httpServer = &http.Server{Addr: "0.0.0.0:9009", Handler: router}
+
+	if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		// TODO: log err
 	}
 
 	return nil
+}
+
+func (s *Server) Close() error {
+	if s.httpServer == nil {
+		return nil
+	}
+
+	return s.httpServer.Close()
 }
 
 func (s *Server) setupRouter() (*httprouter.Router, error) {
@@ -56,6 +66,9 @@ func (s *Server) acceptWorkerConn(responseWriter http.ResponseWriter, req *http.
 		return
 	}
 
+	s.workerService.AddWorker(conn)
+
+	defer s.workerService.RemoveWorker(conn)
 	defer conn.Close()
 
 	for {

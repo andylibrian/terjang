@@ -9,12 +9,22 @@ import (
 )
 
 type Worker struct {
-	conn          *websocket.Conn
-	connWriteLock *sync.Mutex
+	conn           *websocket.Conn
+	connWriteLock  *sync.Mutex
+	messageHandler MessageHandler
+}
+
+type MessageHandler interface {
+	HandleMessage(message []byte)
+}
+
+type defaultMessageHandler struct {
 }
 
 func NewWorker() *Worker {
-	return &Worker{}
+	return &Worker{
+		messageHandler: &defaultMessageHandler{},
+	}
 }
 
 func (w *Worker) Run() {
@@ -39,7 +49,9 @@ func (w *Worker) Run() {
 	defer conn.Close()
 
 	for {
-		_, _, err := conn.ReadMessage()
+		_, message, err := conn.ReadMessage()
+		w.messageHandler.HandleMessage(message)
+
 		if err != nil {
 			return
 		}
@@ -48,4 +60,15 @@ func (w *Worker) Run() {
 
 func (w *Worker) SendMessageToServer(message string) {
 	w.conn.WriteMessage(websocket.TextMessage, []byte(message))
+}
+
+func (w *Worker) GetMessageHandler() MessageHandler {
+	return w.messageHandler
+}
+
+func (w *Worker) SetMessageHandler(h MessageHandler) {
+	w.messageHandler = h
+}
+
+func (h *defaultMessageHandler) HandleMessage(message []byte) {
 }
