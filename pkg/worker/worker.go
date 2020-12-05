@@ -1,11 +1,14 @@
 package worker
 
 import (
+	"encoding/json"
 	"net/url"
 	"sync"
 	"time"
 
+	"github.com/andylibrian/terjang/pkg/messages"
 	"github.com/gorilla/websocket"
+	vegeta "github.com/tsenart/vegeta/v12/lib"
 )
 
 type Worker struct {
@@ -89,4 +92,34 @@ func (w *Worker) IsConnectedCh() <-chan struct{} {
 }
 
 func (h *defaultMessageHandler) HandleMessage(message []byte) {
+	var envelope messages.Envelope
+	err := json.Unmarshal(message, &envelope)
+
+	if err != nil {
+		return
+	}
+
+	if envelope.Kind == messages.KindStartLoadTestRequest {
+		var req messages.StartLoadTestRequest
+		err = json.Unmarshal([]byte(envelope.Data), &req)
+
+		if err != nil {
+			return
+		}
+
+		rate := vegeta.Rate{Freq: int(req.Rate), Per: time.Second}
+		duration := time.Duration(req.Duration) * time.Second
+		targeter := vegeta.NewStaticTargeter(vegeta.Target{
+			Method: req.Method,
+			URL:    req.Url,
+			Body:   []byte(req.Body),
+		})
+
+		attacker := vegeta.NewAttacker()
+		metrics := vegeta.Metrics{}
+
+		for res := range attacker.Attack(targeter, rate, duration, "terjang") {
+			metrics.Add(res)
+		}
+	}
 }
