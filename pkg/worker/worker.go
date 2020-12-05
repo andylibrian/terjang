@@ -9,9 +9,11 @@ import (
 )
 
 type Worker struct {
-	conn           *websocket.Conn
-	connWriteLock  *sync.Mutex
-	messageHandler MessageHandler
+	conn                 *websocket.Conn
+	connWriteLock        *sync.Mutex
+	messageHandler       MessageHandler
+	connectRetryInterval time.Duration
+	isConnectedCh        chan struct{}
 }
 
 type MessageHandler interface {
@@ -23,7 +25,9 @@ type defaultMessageHandler struct {
 
 func NewWorker() *Worker {
 	return &Worker{
-		messageHandler: &defaultMessageHandler{},
+		messageHandler:       &defaultMessageHandler{},
+		connectRetryInterval: 5 * time.Second,
+		isConnectedCh:        make(chan struct{}),
 	}
 }
 
@@ -42,11 +46,13 @@ func (w *Worker) Run() {
 			break
 		}
 
-		time.Sleep(5 * time.Second)
+		time.Sleep(w.connectRetryInterval)
 	}
 
 	w.conn = conn
 	defer conn.Close()
+	defer close(w.isConnectedCh)
+	w.isConnectedCh <- struct{}{}
 
 	for {
 		_, message, err := conn.ReadMessage()
@@ -58,8 +64,16 @@ func (w *Worker) Run() {
 	}
 }
 
+func (w *Worker) SetConnectRetryInterval(d time.Duration) {
+	w.connectRetryInterval = d
+}
+
 func (w *Worker) SendMessageToServer(message []byte) {
-	w.conn.WriteMessage(websocket.TextMessage, message)
+	if w.conn == nil {
+		// should indicate error
+	} else {
+		w.conn.WriteMessage(websocket.TextMessage, message)
+	}
 }
 
 func (w *Worker) GetMessageHandler() MessageHandler {
@@ -68,6 +82,10 @@ func (w *Worker) GetMessageHandler() MessageHandler {
 
 func (w *Worker) SetMessageHandler(h MessageHandler) {
 	w.messageHandler = h
+}
+
+func (w *Worker) IsConnectedCh() <-chan struct{} {
+	return w.isConnectedCh
 }
 
 func (h *defaultMessageHandler) HandleMessage(message []byte) {

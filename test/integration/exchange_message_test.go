@@ -10,6 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const connectRetryInterval time.Duration = 100 * time.Millisecond
+
 type serverMessageHandlerStub struct {
 	handlerDelegate server.MessageHandler
 	messageCount    int
@@ -46,14 +48,14 @@ func TestWorkerSendMessageToServer(t *testing.T) {
 	go server.Run()
 	defer server.Close()
 
-	time.Sleep(1 * time.Second)
-
 	worker := worker.NewWorker()
+	worker.SetConnectRetryInterval(connectRetryInterval)
 	go worker.Run()
-	time.Sleep(1 * time.Second)
+
+	<-worker.IsConnectedCh()
 
 	worker.SendMessageToServer([]byte("msg1"))
-	time.Sleep(1 * time.Second)
+	time.Sleep(500 * time.Millisecond)
 
 	assert.Equal(t, 1, serverMsgHandlerStub.MessageCount())
 }
@@ -62,8 +64,6 @@ func TestServerBroadcastMessagesToWorker(t *testing.T) {
 	server := server.NewServer()
 	go server.Run()
 	defer server.Close()
-
-	time.Sleep(1 * time.Second)
 
 	worker1 := worker.NewWorker()
 	defaultWorker1MsgHandler := worker1.GetMessageHandler()
@@ -76,10 +76,12 @@ func TestServerBroadcastMessagesToWorker(t *testing.T) {
 	worker2MsgHandlerStub := workerMessageHandlerStub{handlerDelegate: defaultWorker2MsgHandler}
 	worker2.SetMessageHandler(&worker2MsgHandlerStub)
 	go worker2.Run()
-	time.Sleep(1 * time.Second)
+
+	<-worker1.IsConnectedCh()
+	<-worker2.IsConnectedCh()
 
 	server.GetWorkerService().BroadcastMessageToWorkers([]byte("msg1"))
-	time.Sleep(1 * time.Second)
+	time.Sleep(500 * time.Millisecond)
 
 	assert.Equal(t, 1, worker1MsgHandlerStub.MessageCount())
 	assert.Equal(t, 1, worker2MsgHandlerStub.MessageCount())
