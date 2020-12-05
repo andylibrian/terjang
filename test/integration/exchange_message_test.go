@@ -52,7 +52,7 @@ func TestWorkerSendMessageToServer(t *testing.T) {
 	go worker.Run()
 	time.Sleep(1 * time.Second)
 
-	worker.SendMessageToServer("msg1")
+	worker.SendMessageToServer([]byte("msg1"))
 	time.Sleep(1 * time.Second)
 
 	assert.Equal(t, 1, serverMsgHandlerStub.MessageCount())
@@ -78,7 +78,7 @@ func TestServerBroadcastMessagesToWorker(t *testing.T) {
 	go worker2.Run()
 	time.Sleep(1 * time.Second)
 
-	server.GetWorkerService().BroadcastMessageToWorkers("msg1")
+	server.GetWorkerService().BroadcastMessageToWorkers([]byte("msg1"))
 	time.Sleep(1 * time.Second)
 
 	assert.Equal(t, 1, worker1MsgHandlerStub.MessageCount())

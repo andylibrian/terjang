@@ -58,8 +58,8 @@ func (w *Worker) Run() {
 	}
 }
 
-func (w *Worker) SendMessageToServer(message string) {
-	w.conn.WriteMessage(websocket.TextMessage, []byte(message))
+func (w *Worker) SendMessageToServer(message []byte) {
+	w.conn.WriteMessage(websocket.TextMessage, message)
 }
 
 func (w *Worker) GetMessageHandler() MessageHandler {

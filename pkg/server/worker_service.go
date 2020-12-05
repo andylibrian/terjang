@@ -48,13 +48,13 @@ func (w *WorkerService) RemoveWorker(conn *websocket.Conn) {
 	delete(w.workers, conn)
 }
 
-func (w *WorkerService) BroadcastMessageToWorkers(message string) {
+func (w *WorkerService) BroadcastMessageToWorkers(message []byte) {
 	w.workersLock.RLock()
 	defer w.workersLock.RUnlock()
 
 	for conn := range w.workers {
 		// TODO: conn should be synced
-		conn.WriteMessage(websocket.TextMessage, []byte(message))
+		conn.WriteMessage(websocket.TextMessage, message)
 	}
 }
 
