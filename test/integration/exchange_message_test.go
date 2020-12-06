@@ -10,8 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const connectRetryInterval time.Duration = 100 * time.Millisecond
-
 type serverMessageHandlerStub struct {
 	handlerDelegate server.MessageHandler
 	messageCount    int

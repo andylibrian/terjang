@@ -44,10 +44,11 @@ func TestStartLoadTest(t *testing.T) {
 
 	<-worker.IsConnectedCh()
 
+	duration := uint64(1)
 	startLoadTestRequest := messages.StartLoadTestRequest{
 		Method:   "GET",
 		Url:      "http://127.0.0.1:10080/hello",
-		Duration: 1,
+		Duration: duration,
 		Rate:     10,
 	}
 
@@ -55,7 +56,9 @@ func TestStartLoadTest(t *testing.T) {
 	envelope, _ := json.Marshal(messages.Envelope{Kind: messages.KindStartLoadTestRequest, Data: string(req)})
 	server.GetWorkerService().BroadcastMessageToWorkers(envelope)
 
-	time.Sleep(2 * time.Second)
+	// Wait for the load test to complete.
+	time.Sleep(time.Duration(duration) * time.Second)
+	time.Sleep(100 * time.Millisecond)
 
 	assert.Equal(t, 10, int(target.counter))
 }
@@ -74,11 +77,14 @@ func TestStopLoadTest(t *testing.T) {
 
 	<-worker.IsConnectedCh()
 
+	duration := uint64(2)
+	rate := uint64(10)
+
 	startLoadTestRequest := messages.StartLoadTestRequest{
 		Method:   "GET",
 		Url:      "http://127.0.0.1:10081/hello",
-		Duration: 2,
-		Rate:     10,
+		Duration: duration,
+		Rate:     rate,
 	}
 
 	req, _ := json.Marshal(startLoadTestRequest)
@@ -90,9 +96,10 @@ func TestStopLoadTest(t *testing.T) {
 	envelope, _ = json.Marshal(messages.Envelope{Kind: messages.KindStopLoadTestRequest})
 	server.GetWorkerService().BroadcastMessageToWorkers(envelope)
 
+	// Sleep for the load test duration if it wouldn't be stopped.
 	time.Sleep(3 * time.Second)
 
 	// Expect incomplete, but not zero
-	assert.Less(t, int(target.counter), 20)
+	assert.Less(t, int(target.counter), int(duration*rate))
 	assert.Greater(t, int(target.counter), 0)
 }
