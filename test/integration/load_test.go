@@ -49,12 +49,13 @@ func TestStartLoadTest(t *testing.T) {
 
 	<-worker.IsConnectedCh()
 
-	duration := uint64(1)
+	duration := 1
+	rate := 10
 	startLoadTestRequest := messages.StartLoadTestRequest{
 		Method:   "POST",
 		Url:      "http://127.0.0.1:10080/hello",
-		Duration: duration,
-		Rate:     10,
+		Duration: uint64(duration),
+		Rate:     uint64(rate),
 		Header:   "X-load-test: MyLoadTest\nX-Foo: Bar",
 		Body:     "thebody",
 	}
@@ -67,7 +68,7 @@ func TestStartLoadTest(t *testing.T) {
 	time.Sleep(time.Duration(duration) * time.Second)
 	time.Sleep(100 * time.Millisecond)
 
-	assert.Equal(t, 10, int(target.counter))
+	assert.Equal(t, rate*duration, int(target.counter))
 	assert.Equal(t, "POST", target.lastReq.Method)
 	assert.Equal(t, "thebody", string(target.lastBody))
 	assert.Equal(t, "MyLoadTest", target.lastReq.Header.Get("X-Load-Test"))
@@ -88,14 +89,14 @@ func TestStopLoadTest(t *testing.T) {
 
 	<-worker.IsConnectedCh()
 
-	duration := uint64(2)
-	rate := uint64(10)
+	duration := 2
+	rate := 10
 
 	startLoadTestRequest := messages.StartLoadTestRequest{
 		Method:   "GET",
 		Url:      "http://127.0.0.1:10081/hello",
-		Duration: duration,
-		Rate:     rate,
+		Duration: uint64(duration),
+		Rate:     uint64(rate),
 	}
 
 	req, _ := json.Marshal(startLoadTestRequest)
@@ -108,9 +109,10 @@ func TestStopLoadTest(t *testing.T) {
 	server.GetWorkerService().BroadcastMessageToWorkers(envelope)
 
 	// Sleep for the load test duration if it wouldn't be stopped.
-	time.Sleep(3 * time.Second)
+	time.Sleep(time.Duration(duration) * time.Second)
+	time.Sleep(200 * time.Millisecond)
 
 	// Expect incomplete, but not zero
-	assert.Less(t, int(target.counter), int(duration*rate))
+	assert.Less(t, int(target.counter), duration*rate)
 	assert.Greater(t, int(target.counter), 0)
 }
