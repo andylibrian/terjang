@@ -2,7 +2,9 @@ package worker
 
 import (
 	"encoding/json"
+	"net/http"
 	"net/url"
+	"strings"
 	"sync"
 	"time"
 
@@ -115,11 +117,26 @@ func (h *defaultMessageHandler) HandleMessage(message []byte) {
 			return
 		}
 
+		header := http.Header{}
+		for _, line := range strings.Split(req.Header, "\n") {
+			parts := strings.Split(line, ":")
+
+			if len(parts) != 2 {
+				continue
+			}
+
+			key := parts[0]
+			value := strings.TrimLeft(parts[1], " ")
+
+			header.Add(key, value)
+		}
+
 		rate := vegeta.Rate{Freq: int(req.Rate), Per: time.Second}
 		duration := time.Duration(req.Duration) * time.Second
 		targeter := vegeta.NewStaticTargeter(vegeta.Target{
 			Method: req.Method,
 			URL:    req.Url,
+			Header: header,
 			Body:   []byte(req.Body),
 		})
 

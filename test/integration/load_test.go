@@ -2,6 +2,7 @@ package integration
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"sync/atomic"
 	"testing"
@@ -14,11 +15,15 @@ import (
 )
 
 type targetServer struct {
-	counter uint32
+	counter  uint32
+	lastReq  *http.Request
+	lastBody []byte
 }
 
 func (t *targetServer) helloHandler(w http.ResponseWriter, req *http.Request) {
+	t.lastBody, _ = ioutil.ReadAll(req.Body)
 	atomic.AddUint32(&t.counter, 1)
+	t.lastReq = req
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -46,10 +51,12 @@ func TestStartLoadTest(t *testing.T) {
 
 	duration := uint64(1)
 	startLoadTestRequest := messages.StartLoadTestRequest{
-		Method:   "GET",
+		Method:   "POST",
 		Url:      "http://127.0.0.1:10080/hello",
 		Duration: duration,
 		Rate:     10,
+		Header:   "X-load-test: MyLoadTest\nX-Foo: Bar",
+		Body:     "thebody",
 	}
 
 	req, _ := json.Marshal(startLoadTestRequest)
@@ -61,6 +68,10 @@ func TestStartLoadTest(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	assert.Equal(t, 10, int(target.counter))
+	assert.Equal(t, "POST", target.lastReq.Method)
+	assert.Equal(t, "thebody", string(target.lastBody))
+	assert.Equal(t, "MyLoadTest", target.lastReq.Header.Get("X-Load-Test"))
+	assert.Equal(t, "Bar", target.lastReq.Header.Get("X-Foo"))
 }
 
 func TestStopLoadTest(t *testing.T) {
