@@ -6,6 +6,7 @@ type Envelope struct {
 }
 
 const KindStartLoadTestRequest = "StartLoadTestRequest"
+const KindStopLoadTestRequest = "StopLoadTestRequest"
 
 type StartLoadTestRequest struct {
 	Method   string `json:"method"`

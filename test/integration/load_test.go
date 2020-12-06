@@ -13,23 +13,26 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var counter uint32
+type targetServer struct {
+	counter uint32
+}
 
-func helloHandler(w http.ResponseWriter, req *http.Request) {
-	atomic.AddUint32(&counter, 1)
+func (t *targetServer) helloHandler(w http.ResponseWriter, req *http.Request) {
+	atomic.AddUint32(&t.counter, 1)
 
 	w.WriteHeader(http.StatusOK)
 }
 
-func startTargetServer() {
+func (t *targetServer) listenAndServe(addr string) {
 	handler := http.NewServeMux()
-	handler.HandleFunc("/hello", helloHandler)
-	target := &http.Server{Addr: ":10080", Handler: handler}
+	handler.HandleFunc("/hello", t.helloHandler)
+	target := &http.Server{Addr: addr, Handler: handler}
 	target.ListenAndServe()
 }
 
 func TestStartLoadTest(t *testing.T) {
-	go startTargetServer()
+	target := targetServer{}
+	go target.listenAndServe(":10080")
 
 	server := server.NewServer()
 	go server.Run()
@@ -44,6 +47,36 @@ func TestStartLoadTest(t *testing.T) {
 	startLoadTestRequest := messages.StartLoadTestRequest{
 		Method:   "GET",
 		Url:      "http://127.0.0.1:10080/hello",
+		Duration: 1,
+		Rate:     10,
+	}
+
+	req, _ := json.Marshal(startLoadTestRequest)
+	envelope, _ := json.Marshal(messages.Envelope{Kind: messages.KindStartLoadTestRequest, Data: string(req)})
+	server.GetWorkerService().BroadcastMessageToWorkers(envelope)
+
+	time.Sleep(2 * time.Second)
+
+	assert.Equal(t, 10, int(target.counter))
+}
+
+func TestStopLoadTest(t *testing.T) {
+	target := targetServer{}
+	go target.listenAndServe(":10081")
+
+	server := server.NewServer()
+	go server.Run()
+	defer server.Close()
+
+	worker := worker.NewWorker()
+	worker.SetConnectRetryInterval(connectRetryInterval)
+	go worker.Run()
+
+	<-worker.IsConnectedCh()
+
+	startLoadTestRequest := messages.StartLoadTestRequest{
+		Method:   "GET",
+		Url:      "http://127.0.0.1:10081/hello",
 		Duration: 2,
 		Rate:     10,
 	}
@@ -52,7 +85,14 @@ func TestStartLoadTest(t *testing.T) {
 	envelope, _ := json.Marshal(messages.Envelope{Kind: messages.KindStartLoadTestRequest, Data: string(req)})
 	server.GetWorkerService().BroadcastMessageToWorkers(envelope)
 
+	time.Sleep(500 * time.Millisecond)
+
+	envelope, _ = json.Marshal(messages.Envelope{Kind: messages.KindStopLoadTestRequest})
+	server.GetWorkerService().BroadcastMessageToWorkers(envelope)
+
 	time.Sleep(3 * time.Second)
 
-	assert.Equal(t, 20, int(counter))
+	// Expect incomplete, but not zero
+	assert.Less(t, int(target.counter), 20)
+	assert.Greater(t, int(target.counter), 0)
 }

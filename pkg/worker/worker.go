@@ -17,6 +17,8 @@ type Worker struct {
 	messageHandler       MessageHandler
 	connectRetryInterval time.Duration
 	isConnectedCh        chan struct{}
+	attacker             *vegeta.Attacker
+	metrics              vegeta.Metrics
 }
 
 type MessageHandler interface {
@@ -24,14 +26,20 @@ type MessageHandler interface {
 }
 
 type defaultMessageHandler struct {
+	worker *Worker
 }
 
 func NewWorker() *Worker {
-	return &Worker{
-		messageHandler:       &defaultMessageHandler{},
+	worker := &Worker{
 		connectRetryInterval: 5 * time.Second,
 		isConnectedCh:        make(chan struct{}),
+		attacker:             vegeta.NewAttacker(),
 	}
+
+	msgHandler := &defaultMessageHandler{worker: worker}
+	worker.messageHandler = msgHandler
+
+	return worker
 }
 
 func (w *Worker) Run() {
@@ -115,11 +123,18 @@ func (h *defaultMessageHandler) HandleMessage(message []byte) {
 			Body:   []byte(req.Body),
 		})
 
-		attacker := vegeta.NewAttacker()
-		metrics := vegeta.Metrics{}
-
-		for res := range attacker.Attack(targeter, rate, duration, "terjang") {
-			metrics.Add(res)
-		}
+		go h.worker.startLoadTest(targeter, rate, duration, "terjang")
+	} else if envelope.Kind == messages.KindStopLoadTestRequest {
+		h.worker.stopLoadTest()
 	}
+}
+
+func (w *Worker) startLoadTest(tr vegeta.Targeter, p vegeta.Pacer, du time.Duration, name string) {
+	for res := range w.attacker.Attack(tr, p, du, "terjang") {
+		w.metrics.Add(res)
+	}
+}
+
+func (w *Worker) stopLoadTest() {
+	w.attacker.Stop()
 }
