@@ -26,6 +26,7 @@ func (t *targetServer) helloHandler(w http.ResponseWriter, req *http.Request) {
 	t.lastReq = req
 
 	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Hello"))
 }
 
 func (t *targetServer) listenAndServe(addr string) {

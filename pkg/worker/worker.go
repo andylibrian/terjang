@@ -13,6 +13,11 @@ import (
 	vegeta "github.com/tsenart/vegeta/v12/lib"
 )
 
+const LoadTestNotStarted = 0
+const LoadTestRunning = 1
+const LoadTestDone = 2
+const LoadTestStopped = 3
+
 type Worker struct {
 	conn                 *websocket.Conn
 	connWriteLock        *sync.Mutex
@@ -21,6 +26,7 @@ type Worker struct {
 	isConnectedCh        chan struct{}
 	attacker             *vegeta.Attacker
 	metrics              vegeta.Metrics
+	loadTestState        int
 }
 
 type MessageHandler interface {
@@ -66,6 +72,8 @@ func (w *Worker) Run() {
 	defer conn.Close()
 	defer close(w.isConnectedCh)
 	w.isConnectedCh <- struct{}{}
+
+	go w.LoopSendMetricsToServer()
 
 	for {
 		_, message, err := conn.ReadMessage()
@@ -147,11 +155,48 @@ func (h *defaultMessageHandler) HandleMessage(message []byte) {
 }
 
 func (w *Worker) startLoadTest(tr vegeta.Targeter, p vegeta.Pacer, du time.Duration, name string) {
+	w.loadTestState = LoadTestRunning
 	for res := range w.attacker.Attack(tr, p, du, "terjang") {
 		w.metrics.Add(res)
 	}
+	w.loadTestState = LoadTestDone
 }
 
 func (w *Worker) stopLoadTest() {
 	w.attacker.Stop()
+
+	w.loadTestState = LoadTestStopped
+}
+
+func (w *Worker) LoopSendMetricsToServer() {
+	for {
+		if w.loadTestState == LoadTestRunning || w.loadTestState == LoadTestDone {
+			w.SendMetricsToServer()
+		}
+
+		time.Sleep(1 * time.Second)
+	}
+}
+
+func (w *Worker) SendMetricsToServer() {
+	w.metrics.Close()
+
+	workerMetrics := messages.WorkerLoadTestMetrics{}
+	workerMetrics.Duration = w.metrics.Duration
+	workerMetrics.Wait = w.metrics.Wait
+	workerMetrics.Rate = w.metrics.Rate
+	workerMetrics.Requests = w.metrics.Requests
+	workerMetrics.Success = w.metrics.Success
+	workerMetrics.Throughput = w.metrics.Throughput
+	workerMetrics.Latencies = w.metrics.Latencies
+	workerMetrics.BytesIn = w.metrics.BytesIn
+	workerMetrics.BytesOut = w.metrics.BytesOut
+	workerMetrics.StatusCodes = w.metrics.StatusCodes
+	workerMetrics.Errors = w.metrics.Errors
+
+	metrics, _ := json.Marshal(workerMetrics)
+	envelope := messages.Envelope{Kind: messages.KindWorkerLoadTestMetrics, Data: string(metrics)}
+
+	msg, _ := json.Marshal(envelope)
+	w.conn.WriteMessage(websocket.TextMessage, msg)
 }

@@ -1,9 +1,11 @@
 package integration
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
+	"github.com/andylibrian/terjang/pkg/messages"
 	"github.com/andylibrian/terjang/pkg/server"
 	"github.com/andylibrian/terjang/pkg/worker"
 
@@ -11,16 +13,34 @@ import (
 )
 
 type serverMessageHandlerStub struct {
-	handlerDelegate server.MessageHandler
-	messageCount    int
+	handlerDelegate     server.MessageHandler
+	messageCount        int
+	metricsMessageCount int
+	lastMetrics         *messages.WorkerLoadTestMetrics
 }
 
 func (s *serverMessageHandlerStub) HandleMessage(message []byte) {
 	s.messageCount++
+
+	var envelope messages.Envelope
+	json.Unmarshal(message, &envelope)
+
+	if envelope.Kind == messages.KindWorkerLoadTestMetrics {
+		s.metricsMessageCount++
+
+		var metrics messages.WorkerLoadTestMetrics
+		json.Unmarshal([]byte(envelope.Data), &metrics)
+
+		s.lastMetrics = &metrics
+	}
 }
 
 func (s *serverMessageHandlerStub) MessageCount() int {
 	return s.messageCount
+}
+
+func (s *serverMessageHandlerStub) MetricsMessageCount() int {
+	return s.metricsMessageCount
 }
 
 type workerMessageHandlerStub struct {
