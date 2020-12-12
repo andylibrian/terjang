@@ -15,6 +15,8 @@ const KindStartLoadTestRequest = "StartLoadTestRequest"
 const KindStopLoadTestRequest = "StopLoadTestRequest"
 const KindWorkerLoadTestMetrics = "WorkerLoadTestMetrics"
 
+const KindServerInfo = "ServerInfo"
+
 type StartLoadTestRequest struct {
 	Method   string `json:"method"`
 	Url      string `json:"url"`
@@ -48,4 +50,9 @@ type WorkerLoadTestMetrics struct {
 	StatusCodes map[string]int `json:"status_codes"`
 	// Errors is a set of unique errors returned by the targets during the attack.
 	Errors []string `json:"errors"`
+}
+
+type ServerInfo struct {
+	NumOfWorkers int
+	State        string
 }
