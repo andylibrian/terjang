@@ -10,11 +10,6 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-const LoadTestNotStarted = 0
-const LoadTestRunning = 1
-const LoadTestDone = 2
-const LoadTestStopped = 3
-
 type Server struct {
 	upgrader            websocket.Upgrader
 	workerService       *WorkerService
@@ -29,6 +24,7 @@ func NewServer() *Server {
 		upgrader:            websocket.Upgrader{},
 		workerService:       NewWorkerService(),
 		notificationService: NewNotificationService(),
+		loadTestState:       messages.ServerStateNotStarted,
 	}
 }
 
@@ -46,6 +42,7 @@ func (s *Server) Run() error {
 	}
 
 	go s.runNotificationLoop()
+	go s.watchWorkerStateChange()
 
 	s.httpServer = &http.Server{Addr: "0.0.0.0:9009", Handler: router}
 	if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -90,7 +87,7 @@ func (s *Server) acceptWorkerConn(responseWriter http.ResponseWriter, req *http.
 			break
 		}
 
-		s.workerService.GetMessageHandler().HandleMessage(message)
+		s.workerService.GetMessageHandler().HandleMessage(conn, message)
 	}
 }
 
@@ -127,15 +124,54 @@ func (s *Server) runNotificationLoop() {
 	}
 }
 
+func (s *Server) StartLoadTest(r *messages.StartLoadTestRequest) {
+	req, _ := json.Marshal(r)
+	envelope, _ := json.Marshal(messages.Envelope{Kind: messages.KindStartLoadTestRequest, Data: string(req)})
+
+	s.loadTestState = messages.ServerStateRunning
+	s.GetWorkerService().BroadcastMessageToWorkers(envelope)
+}
+
+func (s *Server) watchWorkerStateChange() {
+	for {
+		<-s.workerService.stateUpdatedCh
+		s.loadTestState = s.summarizeWorkerStates()
+	}
+}
+
+func (s *Server) summarizeWorkerStates() int {
+	var serverState int = s.loadTestState
+
+	states := make(map[messages.WorkerState]int)
+
+	for _, worker := range s.workerService.workers {
+		if _, ok := states[worker.state]; ok {
+			states[worker.state]++
+		} else {
+			states[worker.state] = 1
+		}
+	}
+
+	if val, ok := states[messages.WorkerStateDone]; ok && val == len(s.workerService.workers) {
+		serverState = messages.ServerStateDone
+	}
+
+	if val, ok := states[messages.WorkerStateStopped]; ok && val == len(s.workerService.workers) {
+		serverState = messages.ServerStateStopped
+	}
+
+	return serverState
+}
+
 func loadTestStateToString(s int) string {
 	switch s {
-	case LoadTestNotStarted:
+	case messages.ServerStateNotStarted:
 		return "NotStarted"
-	case LoadTestRunning:
+	case messages.ServerStateRunning:
 		return "Running"
-	case LoadTestDone:
+	case messages.ServerStateDone:
 		return "Done"
-	case LoadTestStopped:
+	case messages.ServerStateStopped:
 		return "Stopped"
 	}
 

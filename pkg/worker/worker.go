@@ -13,11 +13,6 @@ import (
 	vegeta "github.com/tsenart/vegeta/v12/lib"
 )
 
-const LoadTestNotStarted = 0
-const LoadTestRunning = 1
-const LoadTestDone = 2
-const LoadTestStopped = 3
-
 type Worker struct {
 	conn                 *websocket.Conn
 	connWriteLock        *sync.Mutex
@@ -26,7 +21,7 @@ type Worker struct {
 	isConnectedCh        chan struct{}
 	attacker             *vegeta.Attacker
 	metrics              vegeta.Metrics
-	loadTestState        int
+	loadTestState        messages.WorkerState
 }
 
 type MessageHandler interface {
@@ -155,22 +150,26 @@ func (h *defaultMessageHandler) HandleMessage(message []byte) {
 }
 
 func (w *Worker) startLoadTest(tr vegeta.Targeter, p vegeta.Pacer, du time.Duration, name string) {
-	w.loadTestState = LoadTestRunning
+	w.loadTestState = messages.WorkerStateRunning
+	w.sendWorkerInfoToServer()
+
 	for res := range w.attacker.Attack(tr, p, du, "terjang") {
 		w.metrics.Add(res)
 	}
-	w.loadTestState = LoadTestDone
+
+	w.loadTestState = messages.WorkerStateDone
+	w.sendWorkerInfoToServer()
 }
 
 func (w *Worker) stopLoadTest() {
 	w.attacker.Stop()
 
-	w.loadTestState = LoadTestStopped
+	w.loadTestState = messages.WorkerStateStopped
 }
 
 func (w *Worker) LoopSendMetricsToServer() {
 	for {
-		if w.loadTestState == LoadTestRunning || w.loadTestState == LoadTestDone {
+		if w.loadTestState == messages.WorkerStateRunning || w.loadTestState == messages.WorkerStateDone {
 			w.SendMetricsToServer()
 		}
 
@@ -199,4 +198,14 @@ func (w *Worker) SendMetricsToServer() {
 
 	msg, _ := json.Marshal(envelope)
 	w.conn.WriteMessage(websocket.TextMessage, msg)
+}
+
+func (w *Worker) sendWorkerInfoToServer() {
+	workerInfo := &messages.WorkerInfo{State: w.loadTestState}
+	workerInfoJson, _ := json.Marshal(workerInfo)
+
+	envelope := &messages.Envelope{Kind: messages.KindWorkerInfo, Data: string(workerInfoJson)}
+	envelopeJson, _ := json.Marshal(envelope)
+
+	w.conn.WriteMessage(websocket.TextMessage, envelopeJson)
 }

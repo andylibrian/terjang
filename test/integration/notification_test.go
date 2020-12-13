@@ -98,3 +98,55 @@ func TestServerSendServerInfoNotification(t *testing.T) {
 	assert.Equal(t, 1, serverInfo.NumOfWorkers)
 	assert.Equal(t, "NotStarted", serverInfo.State)
 }
+
+func TestServerUpdateServerInfoNotification(t *testing.T) {
+	target := targetServer{}
+	go target.listenAndServe(":10090")
+
+	server := server.NewServer()
+	go server.Run()
+	defer server.Close()
+
+	clientStub := stubNotificationClient{isConnectedCh: make(chan struct{})}
+	go clientStub.run()
+
+	worker := worker.NewWorker()
+	go worker.Run()
+
+	<-clientStub.isConnectedCh
+	<-worker.IsConnectedCh()
+
+	duration := 2
+	rate := 10
+	startLoadTestRequest := messages.StartLoadTestRequest{
+		Method:   "POST",
+		Url:      "http://127.0.0.1:10090/hello",
+		Duration: uint64(duration),
+		Rate:     uint64(rate),
+	}
+
+	server.StartLoadTest(&startLoadTestRequest)
+
+	// During load test
+	time.Sleep(1 * time.Second)
+	time.Sleep(100 * time.Millisecond)
+
+	lastMsg := clientStub.messages[len(clientStub.messages)-1]
+	assert.Equal(t, messages.KindServerInfo, lastMsg.Kind)
+
+	var serverInfo messages.ServerInfo
+	json.Unmarshal([]byte(lastMsg.Data), &serverInfo)
+
+	assert.Equal(t, "Running", serverInfo.State)
+
+	// After load test
+	time.Sleep(2 * time.Second)
+	time.Sleep(100 * time.Millisecond)
+
+	lastMsg = clientStub.messages[len(clientStub.messages)-1]
+	assert.Equal(t, messages.KindServerInfo, lastMsg.Kind)
+
+	json.Unmarshal([]byte(lastMsg.Data), &serverInfo)
+
+	assert.Equal(t, "Done", serverInfo.State)
+}

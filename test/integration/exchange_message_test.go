@@ -8,6 +8,7 @@ import (
 	"github.com/andylibrian/terjang/pkg/messages"
 	"github.com/andylibrian/terjang/pkg/server"
 	"github.com/andylibrian/terjang/pkg/worker"
+	"github.com/gorilla/websocket"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -19,7 +20,7 @@ type serverMessageHandlerStub struct {
 	lastMetrics         *messages.WorkerLoadTestMetrics
 }
 
-func (s *serverMessageHandlerStub) HandleMessage(message []byte) {
+func (s *serverMessageHandlerStub) HandleMessage(conn *websocket.Conn, message []byte) {
 	s.messageCount++
 
 	var envelope messages.Envelope
