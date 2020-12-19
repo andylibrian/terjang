@@ -12,6 +12,9 @@
   <div class="section" :class="{'is-hidden': !isResultVisible}">
     <ResultSummary :summary="metricsSummary"/>
   </div>
+  <div class="section" :class="{'is-hidden': !isResultVisible}">
+    <ResultDetail :workers="workers" :summary="metricsSummary" />
+  </div>
 
 </template>
 
@@ -20,6 +23,7 @@
   import Navbar from './components/navbar.vue'
   import LaunchTest from './components/launch_test.vue'
   import ResultSummary from './components/result_summary.vue'
+  import ResultDetail from './components/result_detail.vue'
 
   let serverBaseUrl = process.env.VUE_APP_SERVER_BASE_URL;
   if (!serverBaseUrl) {
@@ -32,6 +36,7 @@
       Navbar,
       LaunchTest,
       ResultSummary,
+      ResultDetail,
     },
     data: function() {
       return {
