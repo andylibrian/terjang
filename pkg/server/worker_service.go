@@ -86,11 +86,14 @@ func (h *defaultMessageHandler) HandleMessage(conn *websocket.Conn, message []by
 		var workerInfo messages.WorkerInfo
 		json.Unmarshal([]byte(envelope.Data), &workerInfo)
 
-		c := h.workerService.workers[conn]
+		w := h.workerService.workers[conn]
 
-		if c.state != workerInfo.State {
-			c.state = workerInfo.State
+		if w.state != workerInfo.State {
+			w.state = workerInfo.State
 			h.workerService.stateUpdatedCh <- struct{}{}
 		}
+	} else if envelope.Kind == messages.KindWorkerLoadTestMetrics {
+		w := h.workerService.workers[conn]
+		json.Unmarshal([]byte(envelope.Data), &w.Metrics)
 	}
 }

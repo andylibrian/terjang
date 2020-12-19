@@ -113,11 +113,24 @@ func (s *Server) acceptNotificationConn(responseWriter http.ResponseWriter, req 
 
 func (s *Server) runNotificationLoop() {
 	for {
+		// Server Info
 		serverInfo := messages.ServerInfo{NumOfWorkers: len(s.workerService.workers), State: loadTestStateToString(s.loadTestState)}
 		serverInfoMsg, _ := json.Marshal(serverInfo)
 
 		envelope := messages.Envelope{Kind: messages.KindServerInfo, Data: string(serverInfoMsg)}
 		envelopeMsg, _ := json.Marshal(envelope)
+		s.notificationService.BroadcastMessageToSubscribers([]byte(envelopeMsg))
+
+		// Workers Info
+		var wks []*worker
+		for _, v := range s.workerService.workers {
+			wks = append(wks, v)
+		}
+		workersInfoMsg, _ := json.Marshal(wks)
+
+		envelope = messages.Envelope{Kind: messages.KindWorkersInfo, Data: string(workersInfoMsg)}
+		envelopeMsg, _ = json.Marshal(envelope)
+
 		s.notificationService.BroadcastMessageToSubscribers([]byte(envelopeMsg))
 
 		time.Sleep(1 * time.Second)

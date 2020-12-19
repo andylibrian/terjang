@@ -15,7 +15,7 @@ import (
 
 type Worker struct {
 	conn                 *websocket.Conn
-	connWriteLock        *sync.Mutex
+	connWriteLock        sync.Mutex
 	messageHandler       MessageHandler
 	connectRetryInterval time.Duration
 	isConnectedCh        chan struct{}
@@ -88,6 +88,9 @@ func (w *Worker) SendMessageToServer(message []byte) {
 	if w.conn == nil {
 		// should indicate error
 	} else {
+		w.connWriteLock.Lock()
+		defer w.connWriteLock.Unlock()
+
 		w.conn.WriteMessage(websocket.TextMessage, message)
 	}
 }
@@ -197,7 +200,7 @@ func (w *Worker) SendMetricsToServer() {
 	envelope := messages.Envelope{Kind: messages.KindWorkerLoadTestMetrics, Data: string(metrics)}
 
 	msg, _ := json.Marshal(envelope)
-	w.conn.WriteMessage(websocket.TextMessage, msg)
+	w.SendMessageToServer(msg)
 }
 
 func (w *Worker) sendWorkerInfoToServer() {
@@ -207,5 +210,5 @@ func (w *Worker) sendWorkerInfoToServer() {
 	envelope := &messages.Envelope{Kind: messages.KindWorkerInfo, Data: string(workerInfoJson)}
 	envelopeJson, _ := json.Marshal(envelope)
 
-	w.conn.WriteMessage(websocket.TextMessage, envelopeJson)
+	w.SendMessageToServer(envelopeJson)
 }

@@ -14,9 +14,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type stubWorker struct {
+	Name     string                         `json:"name`
+	Metrics  messages.WorkerLoadTestMetrics `json:"metrics"`
+	StateStr string                         `json:"state"`
+}
+
 type stubNotificationClient struct {
-	isConnectedCh chan struct{}
-	messages      []messages.Envelope
+	isConnectedCh   chan struct{}
+	messages        []messages.Envelope
+	serverInfoMsgs  []messages.Envelope
+	workersInfoMsgs []messages.Envelope
 }
 
 func (s *stubNotificationClient) run() {
@@ -57,6 +65,12 @@ func (s *stubNotificationClient) run() {
 		if err == nil {
 			s.messages = append(s.messages, envelope)
 		}
+
+		if envelope.Kind == messages.KindServerInfo {
+			s.serverInfoMsgs = append(s.serverInfoMsgs, envelope)
+		} else if envelope.Kind == messages.KindWorkersInfo {
+			s.workersInfoMsgs = append(s.workersInfoMsgs, envelope)
+		}
 	}
 }
 
@@ -73,7 +87,7 @@ func TestServerSendServerInfoNotification(t *testing.T) {
 	// Wait for a notification that comes every second
 	time.Sleep(1*time.Second + 100*time.Millisecond)
 
-	lastMsg := clientStub.messages[len(clientStub.messages)-1]
+	lastMsg := clientStub.serverInfoMsgs[len(clientStub.serverInfoMsgs)-1]
 	assert.Equal(t, messages.KindServerInfo, lastMsg.Kind)
 
 	var serverInfo messages.ServerInfo
@@ -90,7 +104,7 @@ func TestServerSendServerInfoNotification(t *testing.T) {
 	time.Sleep(1*time.Second + 100*time.Millisecond)
 
 	// assert server info
-	lastMsg = clientStub.messages[len(clientStub.messages)-1]
+	lastMsg = clientStub.serverInfoMsgs[len(clientStub.serverInfoMsgs)-1]
 	assert.Equal(t, messages.KindServerInfo, lastMsg.Kind)
 
 	json.Unmarshal([]byte(lastMsg.Data), &serverInfo)
@@ -131,7 +145,7 @@ func TestServerUpdateServerInfoNotification(t *testing.T) {
 	time.Sleep(1 * time.Second)
 	time.Sleep(100 * time.Millisecond)
 
-	lastMsg := clientStub.messages[len(clientStub.messages)-1]
+	lastMsg := clientStub.serverInfoMsgs[len(clientStub.serverInfoMsgs)-1]
 	assert.Equal(t, messages.KindServerInfo, lastMsg.Kind)
 
 	var serverInfo messages.ServerInfo
@@ -140,13 +154,20 @@ func TestServerUpdateServerInfoNotification(t *testing.T) {
 	assert.Equal(t, "Running", serverInfo.State)
 
 	// After load test
-	time.Sleep(2 * time.Second)
+	time.Sleep(3 * time.Second)
 	time.Sleep(100 * time.Millisecond)
 
-	lastMsg = clientStub.messages[len(clientStub.messages)-1]
+	lastMsg = clientStub.serverInfoMsgs[len(clientStub.serverInfoMsgs)-1]
 	assert.Equal(t, messages.KindServerInfo, lastMsg.Kind)
 
 	json.Unmarshal([]byte(lastMsg.Data), &serverInfo)
 
 	assert.Equal(t, "Done", serverInfo.State)
+
+	lastWorkersInfo := clientStub.workersInfoMsgs[len(clientStub.workersInfoMsgs)-1]
+
+	var workersInfo []stubWorker
+	json.Unmarshal([]byte(lastWorkersInfo.Data), &workersInfo)
+	assert.Equal(t, uint64(duration*rate), workersInfo[0].Metrics.Requests)
+	assert.Equal(t, float64(1), workersInfo[0].Metrics.Success)
 }

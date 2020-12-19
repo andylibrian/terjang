@@ -17,6 +17,7 @@ const KindWorkerLoadTestMetrics = "WorkerLoadTestMetrics"
 
 const KindServerInfo = "ServerInfo"
 const KindWorkerInfo = "WorkerInfo"
+const KindWorkersInfo = "WorkersInfo"
 
 type StartLoadTestRequest struct {
 	Method   string `json:"method"`
