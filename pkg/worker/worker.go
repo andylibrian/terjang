@@ -66,7 +66,11 @@ func (w *Worker) Run() {
 	w.conn = conn
 	defer conn.Close()
 	defer close(w.isConnectedCh)
-	w.isConnectedCh <- struct{}{}
+
+	// TODO: it's inefficient if nobody is reading this
+	go func() {
+		w.isConnectedCh <- struct{}{}
+	}()
 
 	go w.LoopSendMetricsToServer()
 

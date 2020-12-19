@@ -5,13 +5,17 @@
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Lato&family=Open+Sans&family=Roboto&display=swap" rel="stylesheet"> 
 
-  <Navbar :serverInfo="serverInfo"/>
+  <Navbar :serverInfo="serverInfo" />
+  <div id="section-launch-test" class="section">
+    <LaunchTest :serverInfo="serverInfo" :serverBaseUrl="serverBaseUrl" />
+  </div>
 
 </template>
 
 <script>
   import CreateWebsocket from './lib/websocket.js'
   import Navbar from './components/navbar.vue'
+  import LaunchTest from './components/launch_test.vue'
 
   let serverBaseUrl = process.env.VUE_APP_SERVER_BASE_URL;
   if (!serverBaseUrl) {
@@ -22,6 +26,7 @@
     name: 'App',
     components: {
       Navbar,
+      LaunchTest,
     },
     data: function() {
       return {
@@ -29,6 +34,7 @@
           num_of_workers: 0,
           state: "",
         },
+        serverBaseUrl: serverBaseUrl,
       }
     },
     created: function() {
@@ -86,5 +92,45 @@
     font-family: Lato, Roboto, 'Open sans', sans-serif;
   }
 
+  .section {
+    padding: 1.5rem 0 1.5rem 0 !important;
+  }
+
+  .section .card {
+    box-shadow: none;
+    border: 1px solid rgba(14, 18, 23, 0.08);
+    background: rgba(255, 255, 255, 0.9);
+  }
+
+  .section .card .card-header {
+    background: rgba(100, 110, 128, 0.2) !important;
+  }
+  .section .card .card-header .card-header-title {
+    border-bottom: 1px solid rgba(100, 110, 128, 0.1) !important;
+  }
+
+  .section .card .card-footer strong {
+    color: #525252;
+  }
+
+  .button.is-primary {
+    background-color: #0477c1 !important;
+  }
+
+  .button.is-primary.is-hovered, .button.is-primary:hover {
+    background-color: #0467b1 !important;
+  }
+
+  .button.is-danger {
+    background-color: #c12424 !important;
+  }
+
+  .button.is-danger.is-hovered, .button.is-danger:hover {
+    background-color: #d11414 !important;
+  }
+
+  .button.is-danger[disabled], fieldset[disabled] .button.is-danger {
+    background-color: #e18888 !important;
+  }
 </style>
 

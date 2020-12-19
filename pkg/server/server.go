@@ -65,6 +65,7 @@ func (s *Server) setupRouter() (*httprouter.Router, error) {
 
 	router.GET("/cluster/join", s.acceptWorkerConn)
 	router.GET("/notifications", s.acceptNotificationConn)
+	router.POST("/api/v1/load_test", s.handleStartLoadTest)
 
 	// CORS
 	router.GlobalOPTIONS = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -202,4 +203,21 @@ func loadTestStateToString(s int) string {
 	}
 
 	return ""
+}
+
+func (s *Server) handleStartLoadTest(responseWriter http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+	var startLoadTestRequest messages.StartLoadTestRequest
+	err := json.NewDecoder(req.Body).Decode(&startLoadTestRequest)
+	if err != nil {
+		http.Error(responseWriter, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	s.StartLoadTest(&startLoadTestRequest)
+
+	header := responseWriter.Header()
+	header.Set("Access-Control-Allow-Origin", "*")
+
+	responseWriter.WriteHeader(200)
+	responseWriter.Write([]byte("ok"))
 }
