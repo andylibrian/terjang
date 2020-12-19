@@ -10,7 +10,7 @@
     </div>
     <div class="navbar-end">
       <div class="navbar-item">
-          <strong>{{ serverState }}</strong>
+          <strong>{{ serverInfo.state }}</strong>
       </div>
       <div class="navbar-item">
           <strong>{{ serverInfo.num_of_workers }}</strong>&nbsp;Worker Nodes connected
@@ -31,7 +31,10 @@
     name: 'App',
     data: function() {
       return {
-        serverInfo: {},
+        serverInfo: {
+          num_of_workers: 0,
+          state: "",
+        },
       }
     },
     created: function() {
