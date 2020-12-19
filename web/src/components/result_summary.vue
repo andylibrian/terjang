@@ -120,4 +120,21 @@ export default {
 </script>
 
 <style scoped>
+.card .title {
+  color: #3064D0;
+}
+
+.card-footer-item {
+  justify-content: left;
+  font-size: 0.9rem;
+  color: #6a6a6a;
+}
+
+.card-content .column .icon.is-large {
+  color: rgba(28, 80, 188, 0.35);
+}
+
+.card-footer-item:first-child {
+  margin-left: 0.8rem;
+}
 </style>
