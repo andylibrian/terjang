@@ -4,23 +4,14 @@
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@creativebulma/bulma-tooltip@1.2.0/dist/bulma-tooltip.min.css">
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Lato&family=Open+Sans&family=Roboto&display=swap" rel="stylesheet"> 
-  <nav id="main-navbar" class="navbar is-fixed-top">
-    <div class="navbar-brand">
-      <h1 style="padding: 14px 14px 11px 14px" class="title is-5">Terjang</h1>
-    </div>
-    <div class="navbar-end">
-      <div class="navbar-item">
-          <strong>{{ serverInfo.state }}</strong>
-      </div>
-      <div class="navbar-item">
-          <strong>{{ serverInfo.num_of_workers }}</strong>&nbsp;Worker Nodes connected
-      </div>
-    </div>
-  </nav>
+
+  <Navbar :serverInfo="serverInfo"/>
+
 </template>
 
 <script>
   import CreateWebsocket from './lib/websocket.js'
+  import Navbar from './components/navbar.vue'
 
   let serverBaseUrl = process.env.VUE_APP_SERVER_BASE_URL;
   if (!serverBaseUrl) {
@@ -29,6 +20,9 @@
 
   export default {
     name: 'App',
+    components: {
+      Navbar,
+    },
     data: function() {
       return {
         serverInfo: {
@@ -76,7 +70,7 @@
       }
 
       ws.onerror = function(evt) {
-        console.log("error", evt.data);
+        console.log("error", evt);
       }
     },
   }
@@ -90,17 +84,6 @@
     background-image: linear-gradient(315deg, #dcdddf 0%, #ecedef 100%);
 
     font-family: Lato, Roboto, 'Open sans', sans-serif;
-  }
-
-  #main-navbar {
-    border-bottom: 1px solid rgba(14, 16, 18, 0.06);
-    background-color: #16304e;
-    background-image: linear-gradient(to bottom, #192d3d, #162a3a);
-    color: #dedede !important;
-  }
-
-  #main-navbar * {
-    color: #dedede !important;
   }
 
 </style>
