@@ -21,7 +21,7 @@ type Server struct {
 // NewServer creates a new instance of server.
 func NewServer() *Server {
 	return &Server{
-		upgrader:            websocket.Upgrader{},
+		upgrader:            websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }},
 		workerService:       NewWorkerService(),
 		notificationService: NewNotificationService(),
 		loadTestState:       messages.ServerStateNotStarted,
@@ -65,6 +65,19 @@ func (s *Server) setupRouter() (*httprouter.Router, error) {
 
 	router.GET("/cluster/join", s.acceptWorkerConn)
 	router.GET("/notifications", s.acceptNotificationConn)
+
+	// CORS
+	router.GlobalOPTIONS = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Access-Control-Request-Method") != "" {
+			// Set CORS headers
+			header := w.Header()
+			header.Set("Access-Control-Allow-Methods", header.Get("Allow"))
+			header.Set("Access-Control-Allow-Origin", "*")
+			header.Set("Access-Control-Allow-Headers", "*")
+		}
+
+		w.WriteHeader(204)
+	})
 
 	return router, nil
 }

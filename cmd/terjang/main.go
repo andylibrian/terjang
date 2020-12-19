@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/andylibrian/terjang/pkg/server"
+	"github.com/andylibrian/terjang/pkg/worker"
 	cli "github.com/urfave/cli/v2"
 )
 
@@ -41,7 +43,14 @@ func getCliApp() *cli.App {
 					host := c.String("host")
 					port := c.String("port")
 
+					srv := server.NewServer()
+
 					fmt.Printf("Server is listening on %s:%s\n", host, port)
+					err := srv.Run()
+
+					if err != nil {
+						return err
+					}
 
 					return nil
 				},
@@ -70,7 +79,10 @@ func getCliApp() *cli.App {
 					host := c.String("host")
 					port := c.String("port")
 
+					w := worker.NewWorker()
+
 					fmt.Printf("Connecting to server %s:%s\n", host, port)
+					w.Run()
 
 					return nil
 				},

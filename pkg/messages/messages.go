@@ -7,8 +7,8 @@ import (
 )
 
 type Envelope struct {
-	Kind string
-	Data string
+	Kind string `json:"kind"`
+	Data string `json:"data"`
 }
 
 const KindStartLoadTestRequest = "StartLoadTestRequest"
@@ -71,6 +71,6 @@ const ServerStateDone = 2
 const ServerStateStopped = 3
 
 type ServerInfo struct {
-	NumOfWorkers int
-	State        string
+	NumOfWorkers int    `json:"num_of_workers"`
+	State        string `json:"state"`
 }
