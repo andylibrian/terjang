@@ -150,10 +150,16 @@ func (h *defaultMessageHandler) HandleMessage(message []byte) {
 			Body:   []byte(req.Body),
 		})
 
+		h.worker.resetLoadTest()
 		go h.worker.startLoadTest(targeter, rate, duration, "terjang")
 	} else if envelope.Kind == messages.KindStopLoadTestRequest {
 		h.worker.stopLoadTest()
 	}
+}
+
+func (w *Worker) resetLoadTest() {
+	w.attacker = vegeta.NewAttacker()
+	w.metrics = vegeta.Metrics{}
 }
 
 func (w *Worker) startLoadTest(tr vegeta.Targeter, p vegeta.Pacer, du time.Duration, name string) {
@@ -164,14 +170,17 @@ func (w *Worker) startLoadTest(tr vegeta.Targeter, p vegeta.Pacer, du time.Durat
 		w.metrics.Add(res)
 	}
 
-	w.loadTestState = messages.WorkerStateDone
+	// Preserves state if it's stopped
+	if w.loadTestState != messages.WorkerStateStopped {
+		w.loadTestState = messages.WorkerStateDone
+	}
+
 	w.sendWorkerInfoToServer()
 }
 
 func (w *Worker) stopLoadTest() {
-	w.attacker.Stop()
-
 	w.loadTestState = messages.WorkerStateStopped
+	w.attacker.Stop()
 }
 
 func (w *Worker) LoopSendMetricsToServer() {
