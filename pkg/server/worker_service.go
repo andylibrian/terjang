@@ -9,7 +9,7 @@ import (
 )
 
 type worker struct {
-	Name     string `json:"name`
+	Name     string `json:"name"`
 	conn     *websocket.Conn
 	Metrics  messages.WorkerLoadTestMetrics `json:"metrics"`
 	state    messages.WorkerState
