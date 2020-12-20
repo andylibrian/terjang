@@ -52,16 +52,19 @@
 </template>
 
 <script>
-export default {
-  name: 'ResultDetail',
-  props: {
-    workers: Object,
-    summary: Object,
-  },
-  methods: {
+  export default {
+    name: 'ResultDetail',
+    props: {
+      workers: Object,
+      summary: Object,
+    },
+    methods: {
+    }
   }
-}
 </script>
 
 <style scoped>
+  .table {
+    color: #464646;
+  }
 </style>

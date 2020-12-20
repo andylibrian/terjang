@@ -6,16 +6,22 @@
   <link href="https://fonts.googleapis.com/css2?family=Lato&family=Open+Sans&family=Roboto&display=swap" rel="stylesheet"> 
 
   <Navbar :serverInfo="serverInfo" />
+
   <div class="section">
     <LaunchTest :serverInfo="serverInfo" :serverBaseUrl="serverBaseUrl" />
   </div>
+
   <div class="section" :class="{'is-hidden': !isResultVisible}">
     <ResultSummary :summary="metricsSummary"/>
   </div>
+
   <div class="section" :class="{'is-hidden': !isResultVisible}">
     <ResultDetail :workers="workers" :summary="metricsSummary" />
   </div>
 
+  <div class="section" :class="{'is-hidden': !isErrorsVisible}">
+    <ResultErrors :workers="workers" />
+  </div>
 </template>
 
 <script>
@@ -24,6 +30,7 @@
   import LaunchTest from './components/launch_test.vue'
   import ResultSummary from './components/result_summary.vue'
   import ResultDetail from './components/result_detail.vue'
+  import ResultErrors from './components/result_errors.vue'
 
   let serverBaseUrl = process.env.VUE_APP_SERVER_BASE_URL;
   if (!serverBaseUrl) {
@@ -37,6 +44,7 @@
       LaunchTest,
       ResultSummary,
       ResultDetail,
+      ResultErrors,
     },
     data: function() {
       return {
@@ -47,6 +55,7 @@
         workers: {},
         serverBaseUrl: serverBaseUrl,
         isResultVisible: false,
+        isErrorsVisible: false,
       }
     },
     created: function() {
@@ -92,7 +101,10 @@
                 const worker = obj[key];
                 if ("name" in worker && "metrics" in worker) {
                   _this.workers[worker.name] = worker;
-                  console.log("workers updated", _this.workers);
+
+                  if (!_this.isErrorsVisible && 'errors' in worker.metrics && worker.metrics.errors.length) {
+                    _this.isErrorsVisible = true;
+                  }
                 }
               }
             }
@@ -181,13 +193,14 @@
 
   .section .card {
     box-shadow: none;
-    border: 1px solid rgba(14, 18, 23, 0.08);
+    border: 1px solid rgba(14, 18, 23, 0.09);
     background: rgba(255, 255, 255, 0.9);
   }
 
   .section .card .card-header {
     background: rgba(100, 110, 128, 0.2) !important;
   }
+
   .section .card .card-header .card-header-title {
     border-bottom: 1px solid rgba(100, 110, 128, 0.1) !important;
   }
@@ -214,6 +227,10 @@
 
   .button.is-danger[disabled], fieldset[disabled] .button.is-danger {
     background-color: #e18888 !important;
+  }
+
+  .section > .content {
+      padding: 0 1rem !important;
   }
 </style>
 
