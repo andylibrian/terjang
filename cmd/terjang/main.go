@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -92,7 +91,6 @@ func getCliApp() *cli.App {
 					w := worker.NewWorker()
 					w.SetName(name)
 
-					fmt.Printf("Connecting to server %s:%s\n", host, port)
 					w.Run(host + ":" + port)
 
 					return nil
