@@ -34,7 +34,7 @@ func (s *Server) GetWorkerService() *WorkerService {
 }
 
 // Run listens on the specified port and serve requests.
-func (s *Server) Run() error {
+func (s *Server) Run(addr string) error {
 	router, err := s.setupRouter()
 
 	if err != nil {
@@ -44,7 +44,7 @@ func (s *Server) Run() error {
 	go s.runNotificationLoop()
 	go s.watchWorkerStateChange()
 
-	s.httpServer = &http.Server{Addr: "0.0.0.0:9009", Handler: router}
+	s.httpServer = &http.Server{Addr: addr, Handler: router}
 	if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		// TODO: log err
 	}
@@ -85,13 +85,20 @@ func (s *Server) setupRouter() (*httprouter.Router, error) {
 }
 
 func (s *Server) acceptWorkerConn(responseWriter http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+	name := ""
+
+	names, ok := req.URL.Query()["name"]
+	if ok && len(names[0]) > 0 {
+		name = names[0]
+	}
+
 	conn, err := s.upgrader.Upgrade(responseWriter, req, nil)
 	if err != nil {
 		// TODO: should respond? should probably log
 		return
 	}
 
-	s.workerService.AddWorker(conn)
+	s.workerService.AddWorker(conn, name)
 
 	defer s.workerService.RemoveWorker(conn)
 	defer conn.Close()

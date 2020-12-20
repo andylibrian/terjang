@@ -50,11 +50,11 @@ func (w *WorkerService) SetMessageHandler(h MessageHandler) {
 	w.messageHandler = h
 }
 
-func (w *WorkerService) AddWorker(conn *websocket.Conn) {
+func (w *WorkerService) AddWorker(conn *websocket.Conn, name string) {
 	w.workersLock.Lock()
 	defer w.workersLock.Unlock()
 
-	w.workers[conn] = &worker{conn: conn}
+	w.workers[conn] = &worker{conn: conn, Name: name}
 }
 
 func (w *WorkerService) RemoveWorker(conn *websocket.Conn) {

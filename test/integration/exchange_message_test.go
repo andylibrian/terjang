@@ -64,12 +64,12 @@ func TestWorkerSendMessageToServer(t *testing.T) {
 	serverMsgHandlerStub := serverMessageHandlerStub{handlerDelegate: defaultServerMsgHandler}
 	server.GetWorkerService().SetMessageHandler(&serverMsgHandlerStub)
 
-	go server.Run()
+	go server.Run("127.0.0.1:9009")
 	defer server.Close()
 
 	worker := worker.NewWorker()
 	worker.SetConnectRetryInterval(connectRetryInterval)
-	go worker.Run()
+	go worker.Run("127.0.0.1:9009")
 
 	<-worker.IsConnectedCh()
 
@@ -81,20 +81,20 @@ func TestWorkerSendMessageToServer(t *testing.T) {
 
 func TestServerBroadcastMessagesToWorker(t *testing.T) {
 	server := server.NewServer()
-	go server.Run()
+	go server.Run("127.0.0.1:9009")
 	defer server.Close()
 
 	worker1 := worker.NewWorker()
 	defaultWorker1MsgHandler := worker1.GetMessageHandler()
 	worker1MsgHandlerStub := workerMessageHandlerStub{handlerDelegate: defaultWorker1MsgHandler}
 	worker1.SetMessageHandler(&worker1MsgHandlerStub)
-	go worker1.Run()
+	go worker1.Run("127.0.01:9009")
 
 	worker2 := worker.NewWorker()
 	defaultWorker2MsgHandler := worker2.GetMessageHandler()
 	worker2MsgHandlerStub := workerMessageHandlerStub{handlerDelegate: defaultWorker2MsgHandler}
 	worker2.SetMessageHandler(&worker2MsgHandlerStub)
-	go worker2.Run()
+	go worker2.Run("127.0.0.1:9009")
 
 	<-worker1.IsConnectedCh()
 	<-worker2.IsConnectedCh()

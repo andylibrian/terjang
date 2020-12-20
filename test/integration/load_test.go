@@ -41,12 +41,12 @@ func TestStartLoadTest(t *testing.T) {
 	go target.listenAndServe(":10080")
 
 	server := server.NewServer()
-	go server.Run()
+	go server.Run("127.0.0.1:9019")
 	defer server.Close()
 
 	worker := worker.NewWorker()
 	worker.SetConnectRetryInterval(connectRetryInterval)
-	go worker.Run()
+	go worker.Run("127.0.0.1:9019")
 
 	<-worker.IsConnectedCh()
 
@@ -81,12 +81,12 @@ func TestStopLoadTest(t *testing.T) {
 	go target.listenAndServe(":10081")
 
 	server := server.NewServer()
-	go server.Run()
+	go server.Run("127.0.0.1:9019")
 	defer server.Close()
 
 	worker := worker.NewWorker()
 	worker.SetConnectRetryInterval(connectRetryInterval)
-	go worker.Run()
+	go worker.Run("127.0.0.1:9019")
 
 	<-worker.IsConnectedCh()
 

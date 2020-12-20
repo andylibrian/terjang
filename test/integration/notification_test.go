@@ -27,8 +27,8 @@ type stubNotificationClient struct {
 	workersInfoMsgs []messages.Envelope
 }
 
-func (s *stubNotificationClient) run() {
-	serverURL := url.URL{Scheme: "ws", Host: "127.0.0.1:9009", Path: "/notifications"}
+func (s *stubNotificationClient) run(addr string) {
+	serverURL := url.URL{Scheme: "ws", Host: addr, Path: "/notifications"}
 	serverURLStr := serverURL.String()
 
 	var conn *websocket.Conn
@@ -76,11 +76,11 @@ func (s *stubNotificationClient) run() {
 
 func TestServerSendServerInfoNotification(t *testing.T) {
 	server := server.NewServer()
-	go server.Run()
+	go server.Run("127.0.0.1:9029")
 	defer server.Close()
 
 	clientStub := stubNotificationClient{isConnectedCh: make(chan struct{})}
-	go clientStub.run()
+	go clientStub.run("127.0.0.1:9029")
 
 	<-clientStub.isConnectedCh
 
@@ -97,7 +97,7 @@ func TestServerSendServerInfoNotification(t *testing.T) {
 	assert.Equal(t, "NotStarted", serverInfo.State)
 
 	worker := worker.NewWorker()
-	go worker.Run()
+	go worker.Run("127.0.0.1:9029")
 
 	<-worker.IsConnectedCh()
 
@@ -118,14 +118,14 @@ func TestServerUpdateServerInfoNotification(t *testing.T) {
 	go target.listenAndServe(":10090")
 
 	server := server.NewServer()
-	go server.Run()
+	go server.Run("127.0.0.1:9039")
 	defer server.Close()
 
 	clientStub := stubNotificationClient{isConnectedCh: make(chan struct{})}
-	go clientStub.run()
+	go clientStub.run("127.0.0.1:9039")
 
 	worker := worker.NewWorker()
-	go worker.Run()
+	go worker.Run("127.0.0.1:9039")
 
 	<-clientStub.isConnectedCh
 	<-worker.IsConnectedCh()

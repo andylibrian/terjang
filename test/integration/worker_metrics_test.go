@@ -20,12 +20,12 @@ func TestWorkerSendMetricsDuringLoadTest(t *testing.T) {
 
 	serverMsgHandlerStub := serverMessageHandlerStub{handlerDelegate: defaultServerMsgHandler}
 	server.GetWorkerService().SetMessageHandler(&serverMsgHandlerStub)
-	go server.Run()
+	go server.Run("127.0.0.1:9049")
 	defer server.Close()
 
 	worker := worker.NewWorker()
 	worker.SetConnectRetryInterval(connectRetryInterval)
-	go worker.Run()
+	go worker.Run("127.0.0.1:9049")
 
 	<-worker.IsConnectedCh()
 

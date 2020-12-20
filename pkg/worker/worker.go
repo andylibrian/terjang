@@ -14,6 +14,7 @@ import (
 )
 
 type Worker struct {
+	name                 string
 	conn                 *websocket.Conn
 	connWriteLock        sync.Mutex
 	messageHandler       MessageHandler
@@ -45,8 +46,12 @@ func NewWorker() *Worker {
 	return worker
 }
 
-func (w *Worker) Run() {
-	serverURL := url.URL{Scheme: "ws", Host: "127.0.0.1:9009", Path: "/cluster/join"}
+func (w *Worker) SetName(name string) {
+	w.name = name
+}
+
+func (w *Worker) Run(addr string) {
+	serverURL := url.URL{Scheme: "ws", Host: addr, Path: "/cluster/join", RawQuery: "name=" + w.name}
 
 	serverURLStr := serverURL.String()
 

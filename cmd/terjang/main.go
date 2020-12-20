@@ -46,7 +46,7 @@ func getCliApp() *cli.App {
 					srv := server.NewServer()
 
 					fmt.Printf("Server is listening on %s:%s\n", host, port)
-					err := srv.Run()
+					err := srv.Run(host + ":" + port)
 
 					if err != nil {
 						return err
@@ -76,13 +76,24 @@ func getCliApp() *cli.App {
 					},
 				},
 				Action: func(c *cli.Context) error {
+					name := c.String("name")
+					if name == "" {
+						hostname, err := os.Hostname()
+
+						if err == nil {
+							name = hostname
+						} else {
+							name = "worker"
+						}
+					}
 					host := c.String("host")
 					port := c.String("port")
 
 					w := worker.NewWorker()
+					w.SetName(name)
 
 					fmt.Printf("Connecting to server %s:%s\n", host, port)
-					w.Run()
+					w.Run(host + ":" + port)
 
 					return nil
 				},
