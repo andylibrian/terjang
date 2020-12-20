@@ -8,4 +8,5 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/tsenart/vegeta/v12 v12.8.4
 	github.com/urfave/cli/v2 v2.3.0
+	go.uber.org/zap v1.16.0
 )

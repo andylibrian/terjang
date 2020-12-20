@@ -45,8 +45,8 @@ func getCliApp() *cli.App {
 
 					srv := server.NewServer()
 
-					fmt.Printf("Server is listening on %s:%s\n", host, port)
 					err := srv.Run(host + ":" + port)
+					defer srv.Close()
 
 					if err != nil {
 						return err

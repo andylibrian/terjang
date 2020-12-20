@@ -2,13 +2,31 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/andylibrian/terjang/pkg/messages"
 	"github.com/gorilla/websocket"
 	"github.com/julienschmidt/httprouter"
+	"go.uber.org/zap"
 )
+
+var logger *zap.SugaredLogger
+
+func init() {
+	l, err := zap.NewProduction()
+
+	if err != nil {
+		panic("Can not create logger")
+	}
+
+	logger = l.Sugar()
+}
+
+func SetLogger(l *zap.SugaredLogger) {
+	logger = l
+}
 
 type Server struct {
 	upgrader            websocket.Upgrader
@@ -45,8 +63,11 @@ func (s *Server) Run(addr string) error {
 	go s.watchWorkerStateChange()
 
 	s.httpServer = &http.Server{Addr: addr, Handler: router}
+
+	logger.Infow("Server is listening on", "address", addr)
+
 	if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		// TODO: log err
+		return fmt.Errorf("Server failed to listen and serve: %w", err)
 	}
 
 	return nil
@@ -71,7 +92,6 @@ func (s *Server) setupRouter() (*httprouter.Router, error) {
 	// CORS
 	router.GlobalOPTIONS = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Access-Control-Request-Method") != "" {
-			// Set CORS headers
 			header := w.Header()
 			header.Set("Access-Control-Allow-Methods", header.Get("Allow"))
 			header.Set("Access-Control-Allow-Origin", "*")
@@ -94,12 +114,16 @@ func (s *Server) acceptWorkerConn(responseWriter http.ResponseWriter, req *http.
 
 	conn, err := s.upgrader.Upgrade(responseWriter, req, nil)
 	if err != nil {
-		// TODO: should respond? should probably log
+		logger.Warnw("Failed to upgrade websocket connection", "error", err)
+		// TODO: should respond?
 		return
 	}
 
 	s.workerService.AddWorker(conn, name)
 
+	logger.Infow("Worker connected", "name", name)
+
+	defer logger.Infow("Worker removed", "name", name)
 	defer s.workerService.RemoveWorker(conn)
 	defer conn.Close()
 
@@ -116,12 +140,15 @@ func (s *Server) acceptWorkerConn(responseWriter http.ResponseWriter, req *http.
 func (s *Server) acceptNotificationConn(responseWriter http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	conn, err := s.upgrader.Upgrade(responseWriter, req, nil)
 	if err != nil {
-		// TODO: should respond? should probably log
+		logger.Warnw("Failed to upgrade websocket connection", "error", err)
 		return
 	}
 
 	s.notificationService.AddSubscriber(conn)
 
+	logger.Infow("Notification subscriber connected")
+
+	defer logger.Infow("Notification subscriber removed")
 	defer s.notificationService.RemoveSubscriber(conn)
 	defer conn.Close()
 
@@ -165,11 +192,15 @@ func (s *Server) StartLoadTest(r *messages.StartLoadTestRequest) {
 
 	s.loadTestState = messages.ServerStateRunning
 	s.GetWorkerService().BroadcastMessageToWorkers(envelope)
+
+	logger.Infow("Started load test", "request", r)
 }
 
 func (s *Server) StopLoadTest() {
 	envelope, _ := json.Marshal(messages.Envelope{Kind: messages.KindStopLoadTestRequest})
 	s.GetWorkerService().BroadcastMessageToWorkers(envelope)
+
+	logger.Infow("Stopped load test")
 }
 
 func (s *Server) watchWorkerStateChange() {
