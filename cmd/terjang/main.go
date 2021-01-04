@@ -7,6 +7,7 @@ import (
 	"github.com/andylibrian/terjang/pkg/server"
 	"github.com/andylibrian/terjang/pkg/worker"
 	cli "github.com/urfave/cli/v2"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -22,6 +23,13 @@ func getCliApp() *cli.App {
 	return &cli.App{
 		Name:  "Terjang",
 		Usage: "A scalable HTTP load testing tool built on Vegeta.",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:  "log-level",
+				Usage: "Log level: debug, info, warn, error.",
+				Value: "info",
+			},
+		},
 		Commands: []*cli.Command{
 			{
 				Name:  "server",
@@ -41,6 +49,10 @@ func getCliApp() *cli.App {
 				Action: func(c *cli.Context) error {
 					host := c.String("host")
 					port := c.String("port")
+					logLevel := c.String("log-level")
+
+					logger := getLogger(logLevel)
+					server.SetLogger(logger)
 
 					srv := server.NewServer()
 
@@ -87,6 +99,10 @@ func getCliApp() *cli.App {
 					}
 					host := c.String("host")
 					port := c.String("port")
+					logLevel := c.String("log-level")
+
+					logger := getLogger(logLevel)
+					worker.SetLogger(logger)
 
 					w := worker.NewWorker()
 					w.SetName(name)
@@ -98,4 +114,39 @@ func getCliApp() *cli.App {
 			},
 		},
 	}
+}
+
+func getLogger(level string) *zap.SugaredLogger {
+	zapLevel := zap.InfoLevel
+	switch level {
+	case "debug":
+		zapLevel = zap.DebugLevel
+	case "info":
+		zapLevel = zap.InfoLevel
+	case "warn":
+		zapLevel = zap.WarnLevel
+	case "error":
+		zapLevel = zap.ErrorLevel
+	}
+
+	config := zap.Config{
+		Level:       zap.NewAtomicLevelAt(zapLevel),
+		Development: false,
+		Sampling: &zap.SamplingConfig{
+			Initial:    100,
+			Thereafter: 100,
+		},
+		Encoding:         "json",
+		EncoderConfig:    zap.NewProductionEncoderConfig(),
+		OutputPaths:      []string{"stderr"},
+		ErrorOutputPaths: []string{"stderr"},
+	}
+
+	logger, err := config.Build()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return logger.Sugar()
 }
