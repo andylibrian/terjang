@@ -257,7 +257,7 @@ func (s *Server) watchWorkerStateChange() {
 }
 
 func (s *Server) summarizeWorkerStates() int {
-	var serverState int = s.loadTestState
+	serverState := s.loadTestState
 
 	states := make(map[messages.WorkerState]int)
 

@@ -21,7 +21,7 @@ const KindWorkersInfo = "WorkersInfo"
 
 type StartLoadTestRequest struct {
 	Method   string `json:"method"`
-	Url      string `json:"url"`
+	URL      string `json:"url"`
 	Duration uint64 `json:"duration,string"`
 	// Rate per worker
 	Rate   uint64 `json:"rate,string"`

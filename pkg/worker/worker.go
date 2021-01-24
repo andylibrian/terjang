@@ -174,7 +174,7 @@ func (h *defaultMessageHandler) HandleMessage(message []byte) {
 		duration := time.Duration(req.Duration) * time.Second
 		targeter := vegeta.NewStaticTargeter(vegeta.Target{
 			Method: req.Method,
-			URL:    req.Url,
+			URL:    req.URL,
 			Header: header,
 			Body:   []byte(req.Body),
 		})
@@ -253,10 +253,10 @@ func (w *Worker) SendMetricsToServer() {
 
 func (w *Worker) sendWorkerInfoToServer() {
 	workerInfo := &messages.WorkerInfo{State: w.loadTestState}
-	workerInfoJson, _ := json.Marshal(workerInfo)
+	workerInfoJSON, _ := json.Marshal(workerInfo)
 
-	envelope := &messages.Envelope{Kind: messages.KindWorkerInfo, Data: string(workerInfoJson)}
-	envelopeJson, _ := json.Marshal(envelope)
+	envelope := &messages.Envelope{Kind: messages.KindWorkerInfo, Data: string(workerInfoJSON)}
+	envelopeJSON, _ := json.Marshal(envelope)
 
-	w.SendMessageToServer(envelopeJson)
+	w.SendMessageToServer(envelopeJSON)
 }

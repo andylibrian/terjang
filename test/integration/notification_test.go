@@ -146,7 +146,7 @@ func TestServerUpdateServerInfoNotification(t *testing.T) {
 	rate := 10
 	startLoadTestRequest := messages.StartLoadTestRequest{
 		Method:   "POST",
-		Url:      "http://127.0.0.1:10090/hello",
+		URL:      "http://127.0.0.1:10090/hello",
 		Duration: uint64(duration),
 		Rate:     uint64(rate),
 	}

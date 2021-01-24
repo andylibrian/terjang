@@ -60,7 +60,7 @@ func TestStartLoadTest(t *testing.T) {
 	rate := 10
 	startLoadTestRequest := messages.StartLoadTestRequest{
 		Method:   "POST",
-		Url:      "http://127.0.0.1:10080/hello",
+		URL:      "http://127.0.0.1:10080/hello",
 		Duration: uint64(duration),
 		Rate:     uint64(rate),
 		Header:   "X-load-test: MyLoadTest\nX-Foo: Bar",
@@ -108,7 +108,7 @@ func TestStopLoadTest(t *testing.T) {
 
 	startLoadTestRequest := messages.StartLoadTestRequest{
 		Method:   "GET",
-		Url:      "http://127.0.0.1:10081/hello",
+		URL:      "http://127.0.0.1:10081/hello",
 		Duration: uint64(duration),
 		Rate:     uint64(rate),
 	}
