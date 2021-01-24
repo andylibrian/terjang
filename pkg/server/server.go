@@ -1,9 +1,13 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/andylibrian/terjang/pkg/messages"
@@ -63,6 +67,14 @@ func (s *Server) Run(addr string) error {
 	go s.watchWorkerStateChange()
 
 	s.httpServer = &http.Server{Addr: addr, Handler: router}
+
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-signals
+		ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+		s.httpServer.Shutdown(ctx)
+	}()
 
 	logger.Infow("Server is listening on", "address", addr)
 

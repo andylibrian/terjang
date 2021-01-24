@@ -69,9 +69,14 @@ func TestWorkerSendMessageToServer(t *testing.T) {
 
 	worker := worker.NewWorker()
 	worker.SetConnectRetryInterval(connectRetryInterval)
-	go worker.Run("127.0.0.1:9009")
+	// Wait for worker to be connected
+	connected := make(chan struct{})
+	worker.AddConnectedCallback(func() {
+		connected <- struct{}{}
+	})
 
-	<-worker.IsConnectedCh()
+	go worker.Run("127.0.0.1:9009")
+	<-connected
 
 	worker.SendMessageToServer([]byte("msg1"))
 	time.Sleep(500 * time.Millisecond)
@@ -88,16 +93,27 @@ func TestServerBroadcastMessagesToWorker(t *testing.T) {
 	defaultWorker1MsgHandler := worker1.GetMessageHandler()
 	worker1MsgHandlerStub := workerMessageHandlerStub{handlerDelegate: defaultWorker1MsgHandler}
 	worker1.SetMessageHandler(&worker1MsgHandlerStub)
-	go worker1.Run("127.0.01:9009")
+
+	connected1 := make(chan struct{})
+	worker1.AddConnectedCallback(func() {
+		connected1 <- struct{}{}
+	})
 
 	worker2 := worker.NewWorker()
 	defaultWorker2MsgHandler := worker2.GetMessageHandler()
 	worker2MsgHandlerStub := workerMessageHandlerStub{handlerDelegate: defaultWorker2MsgHandler}
 	worker2.SetMessageHandler(&worker2MsgHandlerStub)
+
+	connected2 := make(chan struct{})
+	worker2.AddConnectedCallback(func() {
+		connected2 <- struct{}{}
+	})
+
+	go worker1.Run("127.0.01:9009")
 	go worker2.Run("127.0.0.1:9009")
 
-	<-worker1.IsConnectedCh()
-	<-worker2.IsConnectedCh()
+	<-connected1
+	<-connected2
 
 	server.GetWorkerService().BroadcastMessageToWorkers([]byte("msg1"))
 	time.Sleep(500 * time.Millisecond)

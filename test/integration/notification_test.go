@@ -97,9 +97,15 @@ func TestServerSendServerInfoNotification(t *testing.T) {
 	assert.Equal(t, "NotStarted", serverInfo.State)
 
 	worker := worker.NewWorker()
-	go worker.Run("127.0.0.1:9029")
 
-	<-worker.IsConnectedCh()
+	// Wait for worker to be connected
+	connected := make(chan struct{})
+	worker.AddConnectedCallback(func() {
+		connected <- struct{}{}
+	})
+
+	go worker.Run("127.0.0.1:9029")
+	<-connected
 
 	time.Sleep(1*time.Second + 100*time.Millisecond)
 
@@ -125,10 +131,16 @@ func TestServerUpdateServerInfoNotification(t *testing.T) {
 	go clientStub.run("127.0.0.1:9039")
 
 	worker := worker.NewWorker()
-	go worker.Run("127.0.0.1:9039")
 
 	<-clientStub.isConnectedCh
-	<-worker.IsConnectedCh()
+	// Wait for worker to be connected
+	connected := make(chan struct{})
+	worker.AddConnectedCallback(func() {
+		connected <- struct{}{}
+	})
+
+	go worker.Run("127.0.0.1:9039")
+	<-connected
 
 	duration := 2
 	rate := 10

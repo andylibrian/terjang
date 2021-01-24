@@ -36,10 +36,10 @@ type Worker struct {
 	connWriteLock        sync.Mutex
 	messageHandler       MessageHandler
 	connectRetryInterval time.Duration
-	isConnectedCh        chan struct{}
 	attacker             *vegeta.Attacker
 	metrics              vegeta.Metrics
 	loadTestState        messages.WorkerState
+	connectedCallbacks   []func()
 }
 
 type MessageHandler interface {
@@ -53,7 +53,6 @@ type defaultMessageHandler struct {
 func NewWorker() *Worker {
 	worker := &Worker{
 		connectRetryInterval: 5 * time.Second,
-		isConnectedCh:        make(chan struct{}),
 		attacker:             vegeta.NewAttacker(),
 	}
 
@@ -91,11 +90,11 @@ func (w *Worker) Run(addr string) {
 
 	w.conn = conn
 	defer conn.Close()
-	defer close(w.isConnectedCh)
 
-	// TODO: it's inefficient if nobody is reading this
 	go func() {
-		w.isConnectedCh <- struct{}{}
+		for _, callback := range w.connectedCallbacks {
+			callback()
+		}
 	}()
 
 	go w.LoopSendMetricsToServer()
@@ -133,8 +132,8 @@ func (w *Worker) SetMessageHandler(h MessageHandler) {
 	w.messageHandler = h
 }
 
-func (w *Worker) IsConnectedCh() <-chan struct{} {
-	return w.isConnectedCh
+func (w *Worker) AddConnectedCallback(f func()) {
+	w.connectedCallbacks = append(w.connectedCallbacks, f)
 }
 
 func (h *defaultMessageHandler) HandleMessage(message []byte) {

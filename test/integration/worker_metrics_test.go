@@ -25,9 +25,15 @@ func TestWorkerSendMetricsDuringLoadTest(t *testing.T) {
 
 	worker := worker.NewWorker()
 	worker.SetConnectRetryInterval(connectRetryInterval)
-	go worker.Run("127.0.0.1:9049")
 
-	<-worker.IsConnectedCh()
+	// Wait for worker to be connected
+	connected := make(chan struct{})
+	worker.AddConnectedCallback(func() {
+		connected <- struct{}{}
+	})
+
+	go worker.Run("127.0.0.1:9049")
+	<-connected
 
 	duration := 2
 	rate := 10
