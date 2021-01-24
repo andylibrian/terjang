@@ -8,6 +8,7 @@ require (
 	github.com/influxdata/tdigest v0.0.1 // indirect
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/mailru/easyjson v0.7.6 // indirect
+	github.com/rakyll/statik v0.1.7
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/stretchr/testify v1.7.0
 	github.com/tsenart/vegeta/v12 v12.8.4

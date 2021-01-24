@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -14,6 +16,11 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/julienschmidt/httprouter"
 	"go.uber.org/zap"
+
+	"github.com/rakyll/statik/fs"
+
+	// Import statik package
+	_ "github.com/andylibrian/terjang/pkg/server/statik"
 )
 
 var logger *zap.SugaredLogger
@@ -94,7 +101,18 @@ func (s *Server) Close() error {
 }
 
 func (s *Server) setupRouter() (*httprouter.Router, error) {
+	statikFs, err := fs.New()
+	if err != nil {
+		return nil, err
+	}
+
 	router := httprouter.New()
+
+	// static files
+	router.GET("/", serveStatikFile(statikFs, "/index.html"))
+	router.GET("/favicon.ico", serveStatikFile(statikFs, "/favicon.ico"))
+	router.Handler("GET", "/js/*filepath", http.FileServer(statikFs))
+	router.Handler("GET", "/css/*filepath", http.FileServer(statikFs))
 
 	router.GET("/cluster/join", s.acceptWorkerConn)
 	router.GET("/notifications", s.acceptNotificationConn)
@@ -114,6 +132,22 @@ func (s *Server) setupRouter() (*httprouter.Router, error) {
 	})
 
 	return router, nil
+}
+
+func serveStatikFile(fs http.FileSystem, path string) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+		reader, err := fs.Open(path)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer reader.Close()
+		contents, err := ioutil.ReadAll(reader)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		w.Write(contents)
+	}
 }
 
 func (s *Server) acceptWorkerConn(responseWriter http.ResponseWriter, req *http.Request, _ httprouter.Params) {
