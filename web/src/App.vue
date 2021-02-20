@@ -102,7 +102,7 @@
                 if ("name" in worker && "metrics" in worker) {
                   _this.workers[worker.name] = worker;
 
-                  if (!_this.isErrorsVisible && 'errors' in worker.metrics && worker.metrics.errors.length) {
+                  if (!_this.isErrorsVisible && 'errors' in worker.metrics && worker.metrics.errors && worker.metrics.errors.length) {
                     _this.isErrorsVisible = true;
                   }
                 }
