@@ -1,7 +1,7 @@
 .PHONY: default
 default:
 	mkdir -p ./bin
-	go build -o ./bin/terjang ./cmd/terjang/
+	CGO_ENABLED=0 go build -a -o ./bin/terjang ./cmd/terjang/
 
 prepare:
 	cd web; npm ci; cd -
