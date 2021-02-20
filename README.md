@@ -16,10 +16,14 @@ Build backend:
 go build -o ./bin/terjang ./cmd/terjang/
 ```
 
-Run backend:
+Run server:
 
 ```
 ./bin/terjang server
+```
+
+Run a worker on another terminal:
+```
 ./bin/terjang worker
 ```
 
