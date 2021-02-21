@@ -10,6 +10,10 @@ make
 
 ## Development
 
+Prerequisites:
+- Go (tested version: 1.15)
+- Node (tested version: 14)
+
 Build backend:
 
 ```bash
