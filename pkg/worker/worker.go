@@ -38,6 +38,7 @@ type Worker struct {
 	connectRetryInterval time.Duration
 	attacker             *vegeta.Attacker
 	metrics              vegeta.Metrics
+	metricsLock          sync.RWMutex
 	loadTestState        messages.WorkerState
 	connectedCallbacks   []func()
 }
@@ -192,7 +193,10 @@ func (h *defaultMessageHandler) HandleMessage(message []byte) {
 
 func (w *Worker) resetLoadTest() {
 	w.attacker = vegeta.NewAttacker()
+
+	w.metricsLock.Lock()
 	w.metrics = vegeta.Metrics{}
+	w.metricsLock.Unlock()
 }
 
 func (w *Worker) startLoadTest(tr vegeta.Targeter, p vegeta.Pacer, du time.Duration, name string) {
@@ -200,7 +204,9 @@ func (w *Worker) startLoadTest(tr vegeta.Targeter, p vegeta.Pacer, du time.Durat
 	w.sendWorkerInfoToServer()
 
 	for res := range w.attacker.Attack(tr, p, du, "terjang") {
+		w.metricsLock.Lock()
 		w.metrics.Add(res)
+		w.metricsLock.Unlock()
 	}
 
 	// Preserves state if it's stopped
@@ -229,7 +235,12 @@ func (w *Worker) LoopSendMetricsToServer() {
 }
 
 func (w *Worker) SendMetricsToServer() {
+	w.metricsLock.Lock()
 	w.metrics.Close()
+	w.metricsLock.Unlock()
+
+	w.metricsLock.RLock()
+	defer w.metricsLock.RUnlock()
 
 	workerMetrics := messages.WorkerLoadTestMetrics{}
 	workerMetrics.Duration = w.metrics.Duration
