@@ -192,7 +192,11 @@ func (h *defaultMessageHandler) HandleMessage(message []byte) {
 }
 
 func (w *Worker) resetLoadTest() {
-	w.attacker = vegeta.NewAttacker()
+	w.attacker = vegeta.NewAttacker(
+		vegeta.KeepAlive(true),
+		vegeta.HTTP2(true),
+		vegeta.H2C(false),
+	)
 
 	w.metricsLock.Lock()
 	w.metrics = vegeta.Metrics{}
