@@ -209,7 +209,7 @@ export default {
       const postData = JSON.stringify({
         method: method,
         url: url,
-        duration: duration,
+        duration: duration.toString(),
         rate: rate,
         header: header,
         body: body,
