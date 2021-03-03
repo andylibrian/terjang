@@ -215,7 +215,12 @@ export default {
         body: body,
       });
 
-      xhr.send(postData);
+      if(url == ''){
+        alert("Please enter a valid URL")
+        return false
+      }
+      else
+        xhr.send(postData);
 
       // TODO: handle response
     },
