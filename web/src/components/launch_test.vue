@@ -215,13 +215,13 @@ export default {
         body: body,
       });
 
-      if(url == ''){
-        alert("Please enter a valid URL")
-        return false
+      if(!url){
+        alert("Please enter a valid URL");
+        return false;
       }
-      else
+      else{
         xhr.send(postData);
-
+      }
       // TODO: handle response
     },
     stopLoadTest() {
