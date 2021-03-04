@@ -4,18 +4,34 @@
       <div class="tile is-child is-6">
         <div class="card">
           <div class="card-header">
-            <strong class="card-header-title"><span class="icon"><i class="fas fa-rocket" aria-hidden="true"></i></span> Launch a load test</strong>
+            <strong class="card-header-title"
+              ><span class="icon"
+                ><i class="fas fa-rocket" aria-hidden="true"></i
+              ></span>
+              Launch a load test</strong
+            >
           </div>
           <div class="card-content">
             <form @submit.prevent>
               <div class="tabs">
                 <ul>
-                  <li :class="{'is-active': launchFormActiveTab == 'basic'}"><a @click="launchFormSwitchTab('basic')">Basic Settings</a></li>
-                  <li :class="{'is-active': launchFormActiveTab == 'headers'}"><a @click="launchFormSwitchTab('headers')">Headers</a></li>
-                  <li :class="{'is-active': launchFormActiveTab == 'body'}"><a @click="launchFormSwitchTab('body')">Body</a></li>
+                  <li :class="{ 'is-active': launchFormActiveTab == 'basic' }">
+                    <a @click="launchFormSwitchTab('basic')">Basic Settings</a>
+                  </li>
+                  <li
+                    :class="{ 'is-active': launchFormActiveTab == 'headers' }"
+                  >
+                    <a @click="launchFormSwitchTab('headers')">Headers</a>
+                  </li>
+                  <li :class="{ 'is-active': launchFormActiveTab == 'body' }">
+                    <a @click="launchFormSwitchTab('body')">Body</a>
+                  </li>
                 </ul>
               </div>
-              <div id="launchForm-tab-content-basic" :class="{'is-hidden': launchFormActiveTab != 'basic'}">
+              <div
+                id="launchForm-tab-content-basic"
+                :class="{ 'is-hidden': launchFormActiveTab != 'basic' }"
+              >
                 <div class="field is-horizontal">
                   <div class="field-label is-normal">
                     <label class="label" for="load-test-url">URL</label>
@@ -33,7 +49,12 @@
                         </span>
                       </p>
                       <p class="control is-expanded has-icons-left">
-                        <input class="input" id="load-test-url" type="text" placeholder="URL">
+                        <input
+                          class="input"
+                          id="load-test-url"
+                          type="text"
+                          placeholder="URL"
+                        />
                         <span class="icon is-small is-left">
                           <span class="fas fa-globe-asia"></span>
                         </span>
@@ -43,19 +64,31 @@
                 </div>
                 <div class="field is-horizontal">
                   <div class="field-label is-normal">
-                    <label class="label" for="load-test-duration">Duration</label>
+                    <label class="label" for="load-test-duration"
+                      >Duration</label
+                    >
                   </div>
                   <div class="field-body">
                     <div class="field has-addons">
                       <p class="control has-icons-left">
-                        <input class="input" name="load-test-duration" id="load-test-duration" type="text" placeholder="Duration" value="30">
+                        <input
+                          class="input"
+                          name="load-test-duration"
+                          id="load-test-duration"
+                          type="text"
+                          placeholder="Duration"
+                          value="30"
+                        />
                         <span class="icon is-small is-left">
                           <span class="fas fa-stopwatch"></span>
                         </span>
                       </p>
                       <p class="control">
                         <span class="select">
-                          <select id="load-test-duration-unit" name="load-test-duration-unit">
+                          <select
+                            id="load-test-duration-unit"
+                            name="load-test-duration-unit"
+                          >
                             <option value="second">seconds</option>
                             <option value="minute">minutes</option>
                             <option value="hour">hours</option>
@@ -67,12 +100,21 @@
                 </div>
                 <div class="field is-horizontal">
                   <div class="field-label is-normal">
-                    <label class="label" for="load-test-rate">Rate per worker</label>
+                    <label class="label" for="load-test-rate"
+                      >Rate per worker</label
+                    >
                   </div>
                   <div class="field-body">
                     <div class="field has-addons">
                       <p class="control has-icons-left">
-                        <input class="input" name="load-test-rate" id="load-test-rate" type="text" placeholder="Rate" value="100">
+                        <input
+                          class="input"
+                          name="load-test-rate"
+                          id="load-test-rate"
+                          type="text"
+                          placeholder="Rate"
+                          value="100"
+                        />
                         <span class="icon is-small is-left">
                           <span class="fas fa-bolt"></span>
                         </span>
@@ -86,7 +128,10 @@
                   </div>
                 </div>
               </div>
-              <div id="launchForm-tab-content-headers" :class="{'is-hidden': launchFormActiveTab != 'headers'}">
+              <div
+                id="launchForm-tab-content-headers"
+                :class="{ 'is-hidden': launchFormActiveTab != 'headers' }"
+              >
                 <div class="field is-horizontal">
                   <div class="field-label is-normal">
                     <label class="label" for="load-test-header">Header</label>
@@ -94,14 +139,21 @@
                   <div class="field-body">
                     <div class="field has-addons">
                       <div class="control is-expanded">
-                        <textarea class="textarea" id="load-test-header" placeholder="Key: Value
-Key: Value"></textarea>
+                        <textarea
+                          class="textarea"
+                          id="load-test-header"
+                          placeholder="Key: Value
+Key: Value"
+                        ></textarea>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-              <div id="launchForm-tab-content-body" :class="{'is-hidden': launchFormActiveTab != 'body'}">
+              <div
+                id="launchForm-tab-content-body"
+                :class="{ 'is-hidden': launchFormActiveTab != 'body' }"
+              >
                 <div class="field is-horizontal">
                   <div class="field-label is-normal">
                     <label class="label" for="load-test-body">Body</label>
@@ -116,10 +168,22 @@ Key: Value"></textarea>
                 <div class="field-body">
                   <div class="field is-grouped">
                     <p class="control buttons">
-                      <button v-bind:disabled="serverInfo.state.toLowerCase() == 'running'" class="button is-primary" @click="runLoadTest()">
+                      <button
+                        v-bind:disabled="
+                          serverInfo.state.toLowerCase() == 'running'
+                        "
+                        class="button is-primary"
+                        @click="runLoadTest()"
+                      >
                         Run
                       </button>
-                      <button v-bind:disabled="serverInfo.state.toLowerCase() != 'running'" class="button is-danger" @click="stopLoadTest()">
+                      <button
+                        v-bind:disabled="
+                          serverInfo.state.toLowerCase() != 'running'
+                        "
+                        class="button is-danger"
+                        @click="stopLoadTest()"
+                      >
                         Stop
                       </button>
                     </p>
@@ -215,13 +279,13 @@ export default {
         body: body,
       });
 
-      if(url == ''){
-        alert("Please enter a valid URL")
-        return false
+      if(!url){
+        alert("Please enter a valid URL");
+        return false;
       }
-      else
+      else{}
         xhr.send(postData);
-
+    }
       // TODO: handle response
     },
     stopLoadTest() {
@@ -235,5 +299,4 @@ export default {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
