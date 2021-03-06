@@ -121,6 +121,8 @@ func (s *Server) setupRouter() (*httprouter.Router, error) {
 	router.POST("/api/v1/load_test", s.handleStartLoadTest)
 	router.DELETE("/api/v1/load_test", s.handleStopLoadTest)
 
+	router.GET("/healthz", s.handleHealthz)
+
 	// CORS
 	router.GlobalOPTIONS = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Access-Control-Request-Method") != "" {
@@ -321,4 +323,8 @@ func (s *Server) handleStopLoadTest(responseWriter http.ResponseWriter, req *htt
 	header.Set("Access-Control-Allow-Origin", "*")
 
 	responseWriter.WriteHeader(204)
+}
+
+func (s *Server) handleHealthz(responseWriter http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+	responseWriter.WriteHeader(200)
 }
