@@ -12,6 +12,8 @@ Scalable HTTP load testing tool built on [Vegeta](https://github.com/tsenart/veg
   - Start and stop load test via HTTP API
   - Receive real time results via websocket
 
+![Demo](docs/demo.gif?raw=true "Demo")
+
 ## Install
 
 ### Pre-compiled
