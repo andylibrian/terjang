@@ -10,6 +10,12 @@ import (
 	"go.uber.org/zap"
 )
 
+// nolint: gochecknoglobals
+var (
+	version = "dev"
+	commit  = "main"
+)
+
 func main() {
 	app := getCliApp()
 
@@ -21,8 +27,9 @@ func main() {
 
 func getCliApp() *cli.App {
 	return &cli.App{
-		Name:  "Terjang",
-		Usage: "A scalable HTTP load testing tool built on Vegeta.",
+		Name:    "Terjang",
+		Usage:   "A scalable HTTP load testing tool built on Vegeta.",
+		Version: version + " (" + commit + ")",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "log-level",

@@ -10,6 +10,9 @@ builds:
       - windows
       - darwin
     main: ./cmd/terjang/main.go
+    mod_timestamp: '{{ .CommitTimestamp }}'
+    ldflags:
+      - -X main.version={{.Version}} -X main.commit={{.Commit}}
 checksum:
   name_template: 'checksums.txt'
 snapshot:
@@ -20,3 +23,9 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
+      - Merge pull request
+      - Merge branch
+archives:
+  - format_overrides:
+    - goos: windows
+      format: zip
