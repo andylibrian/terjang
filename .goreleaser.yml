@@ -16,7 +16,7 @@ builds:
 checksum:
   name_template: 'checksums.txt'
 snapshot:
-  name_template: "{{ .Tag }}-next"
+  name_template: "dev"
 changelog:
   sort: asc
   filters:
@@ -29,3 +29,18 @@ archives:
   - format_overrides:
     - goos: windows
       format: zip
+dockers:
+- image_templates:
+  - 'andylibrian/terjang:{{ .Version }}-amd64'
+  - 'andylibrian/terjang:latest'
+  - 'ghcr.io/andylibrian/terjang:{{ .Version }}-amd64'
+  - 'ghcr.io/andylibrian/terjang:latest'
+  dockerfile: Dockerfile
+  build_flag_templates:
+  - "--pull"
+  - "--label=org.opencontainers.image.created={{.Date}}"
+  - "--label=org.opencontainers.image.name={{.ProjectName}}"
+  - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+  - "--label=org.opencontainers.image.version={{.Version}}"
+  - "--label=org.opencontainers.image.source={{.GitURL}}"
+  - "--platform=linux/amd64"
