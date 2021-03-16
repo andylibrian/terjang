@@ -52,6 +52,17 @@ Then open [http://localhost:9009](http://localhost:9009)
 terjang -h
 ```
 
+### Docker compose
+
+```bash
+git clone git@github.com:andylibrian/terjang.git
+cd terjang
+docker-compose up -d
+```
+
+Then open [http://localhost:9009](http://localhost:9009)
+
+
 ## Development
 
 Prerequisites:

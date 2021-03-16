@@ -1,0 +1,13 @@
+version: '3.9'
+services:
+  server:
+    image: 'ghcr.io/andylibrian/terjang:latest'
+    command: ["server"]
+    ports:
+    - 9009:9009
+  worker1:
+    image: 'ghcr.io/andylibrian/terjang:latest'
+    command: ["worker", "--host", "server", "--name", "worker1"]
+  worker2:
+    image: 'ghcr.io/andylibrian/terjang:latest'
+    command: ["worker", "--host", "server", "--name", "worker2"]
