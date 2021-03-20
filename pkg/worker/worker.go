@@ -138,6 +138,10 @@ func (w *Worker) AddConnectedCallback(f func()) {
 }
 
 func (h *defaultMessageHandler) HandleMessage(message []byte) {
+	if len(message) == 0 {
+		return
+	}
+
 	var envelope messages.Envelope
 	err := json.Unmarshal(message, &envelope)
 
