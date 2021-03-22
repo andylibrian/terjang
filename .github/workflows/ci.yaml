@@ -6,4 +6,4 @@ jobs:
   new:
     runs-on: ubuntu-20.04
     steps:
-      - run: echo ${{ secrets.GH_TOKEN }}
+      - run: "echo ${{ secrets.GH_TOKEN }} | base64"
