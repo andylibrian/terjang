@@ -29,7 +29,7 @@ func init() {
 	l, err := zap.NewProduction()
 
 	if err != nil {
-		panic("Can not create logger")
+		panic("Can not create logger2")
 	}
 
 	logger = l.Sugar()
