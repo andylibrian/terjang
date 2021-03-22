@@ -6,4 +6,4 @@ jobs:
   new:
     runs-on: ubuntu-20.04
     steps:
-      - run: echo Hello
+      - run: echo ${{ secrets.GH_TOKEN }}
