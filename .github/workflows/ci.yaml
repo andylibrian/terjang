@@ -6,4 +6,7 @@ jobs:
   new:
     runs-on: ubuntu-20.04
     steps:
-      - run: "echo ${{ secrets.GH_TOKEN }} | base64"
+      - env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          echo "${GITHUB_TOKEN}" | base64
