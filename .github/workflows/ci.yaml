@@ -3,54 +3,7 @@ name: CI
 on: [push]
 
 jobs:
-  build-and-test:
+  new:
     runs-on: ubuntu-20.04
     steps:
-      # setup
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
-        with:
-          go-version: '1.15.8'
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-
-      # prepare
-      - run: cd web; npm ci
-      - run: GO111MODULE=off go get github.com/rakyll/statik
-      - run: cd web; ./node_modules/.bin/vue-cli-service build
-      - run: statik -src=./web/dist -dest=./pkg/server
-
-      # build
-      - run: CGO_ENABLED=0 go build -a -o ./terjang ./cmd/terjang/
-
-      # test
-      - run: go test -v ./test/...
-
-  docker:
-    runs-on: ubuntu-latest
-    needs: build-and-test
-    if: success() && github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - uses: actions/setup-go@v2
-        with:
-          go-version: '1.15.8'
-      - env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: |
-          echo "${GITHUB_TOKEN}" | docker login ghcr.io --username $GITHUB_ACTOR --password-stdin
-      - name: Install GoReleaser
-        uses: goreleaser/goreleaser-action@v2
-        with:
-          install-only: true
-      - name: GoReleaser
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: goreleaser --snapshot
-      - name: docker push
-        run: |
-          docker push ghcr.io/andylibrian/terjang:latest
-          docker push ghcr.io/andylibrian/terjang:dev-amd64
+      - run: echo Hello
