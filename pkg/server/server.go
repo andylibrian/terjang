@@ -176,6 +176,7 @@ func (s *Server) acceptWorkerConn(responseWriter http.ResponseWriter, req *http.
 	defer logger.Infow("Worker removed", "name", name)
 	defer s.workerService.RemoveWorker(conn)
 	defer conn.Close()
+	defer s.stopLoadTestIfNoWorkerRemaining()
 
 	for {
 		_, message, err := conn.ReadMessage()
@@ -184,6 +185,14 @@ func (s *Server) acceptWorkerConn(responseWriter http.ResponseWriter, req *http.
 		}
 
 		s.workerService.GetMessageHandler().HandleMessage(conn, message)
+	}
+}
+
+func (s *Server) stopLoadTestIfNoWorkerRemaining(){
+	val := len(s.workerService.workers) - 1
+	logger.Infow("Number of remaining workers: ", "", val)
+	if val == 0 {
+		s.loadTestState = messages.ServerStateStopped
 	}
 }
 
