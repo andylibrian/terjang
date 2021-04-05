@@ -66,10 +66,10 @@
             2xx:&nbsp;<strong>{{ setThousandSeparator(summary.statusCodes['2xx']) }}</strong>
           </div>
           <div class="card-footer-item has-text-left">
-            4xx:&nbsp;<strong>{{ summary.statusCodes['4xx'] }}</strong>
+            4xx:&nbsp;<strong>{{ setThousandSeparator(summary.statusCodes['4xx']) }}</strong>
           </div>
           <div class="card-footer-item has-text-left">
-            5xx:&nbsp;<strong>{{ summary.statusCodes['5xx'] }}</strong>
+            5xx:&nbsp;<strong>{{ setThousandSeparator(summary.statusCodes['5xx']) }}</strong>
           </div>
         </div>
       </div>
