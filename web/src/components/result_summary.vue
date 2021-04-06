@@ -5,7 +5,7 @@
         <div class="card-content">
           <div class="columns">
             <div class="column">
-              <span class="title">{{ Math.floor(summary.throughput) }}</span>
+              <span class="title">{{ setThousandSeparator(Math.floor(summary.throughput)) }}</span>
               <p class="content">response / seconds</p>
             </div>
             <div class="column has-text-right is-one-fifth m-1">
@@ -16,7 +16,7 @@
         <div class="card-footer">
           <div class="card-footer-item has-text-left">
             <div class="content">
-              Total requests: <strong>{{ summary.requests }}</strong>
+              Total requests: <strong>{{ setThousandSeparator(summary.requests) }}</strong>
             </div>
           </div>
         </div>
@@ -63,13 +63,13 @@
         </div>
         <div class="card-footer">
           <div class="card-footer-item has-text-left">
-            2xx:&nbsp;<strong>{{ summary.statusCodes['2xx'] }}</strong>
+            2xx:&nbsp;<strong>{{ setThousandSeparator(summary.statusCodes['2xx']) }}</strong>
           </div>
           <div class="card-footer-item has-text-left">
-            4xx:&nbsp;<strong>{{ summary.statusCodes['4xx'] }}</strong>
+            4xx:&nbsp;<strong>{{ setThousandSeparator(summary.statusCodes['4xx']) }}</strong>
           </div>
           <div class="card-footer-item has-text-left">
-            5xx:&nbsp;<strong>{{ summary.statusCodes['5xx'] }}</strong>
+            5xx:&nbsp;<strong>{{ setThousandSeparator(summary.statusCodes['5xx']) }}</strong>
           </div>
         </div>
       </div>
@@ -114,6 +114,9 @@ export default {
       const i = Math.floor(Math.log(bytes) / Math.log(k));
 
       return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    },
+    setThousandSeparator(value){
+      return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
   }
 }
