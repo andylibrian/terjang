@@ -73,7 +73,8 @@ helm install terjang andylibrian/terjang
 ```
 
 Configuration: see [values.yaml](https://github.com/andylibrian/helm-charts/blob/main/charts/terjang/values.yaml)
-To access UI: `kubectl port-forward svc/server 9009:80`, then open [http://localhost:9009](http://localhost:9009)
+
+To access the UI: `kubectl port-forward svc/server 9009:80`, then open [http://localhost:9009](http://localhost:9009)
 
 
 ## Contributing
