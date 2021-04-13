@@ -63,6 +63,18 @@ docker-compose up -d
 Then open [http://localhost:9009](http://localhost:9009)
 
 
+## Deploying on Kubernetes via Helm
+
+```bash
+helm repo add andylibrian https://andylibrian.github.io/helm-charts
+helm repo update
+
+helm install terjang andylibrian/terjang
+```
+
+Configuration: see [values.yaml](https://github.com/andylibrian/helm-charts/blob/main/charts/terjang/values.yaml).
+
+
 ## Contributing
 
 See [Contributing](CONTRIBUTING.md)
