@@ -97,6 +97,10 @@
                 }
               }
             } else if (msg.kind === "WorkersInfo") {
+
+              //reset workers object and start reading from server again
+              _this.workers = {};
+              
               for (let key in obj) {
                 const worker = obj[key];
                 if ("name" in worker && "metrics" in worker) {
