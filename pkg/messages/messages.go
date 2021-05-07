@@ -6,19 +6,31 @@ import (
 	vegeta "github.com/tsenart/vegeta/v12/lib"
 )
 
+// Envelope is ...
 type Envelope struct {
 	Kind string `json:"kind"`
 	Data string `json:"data"`
 }
 
+// KindStartLoadTestRequest is ...
 const KindStartLoadTestRequest = "StartLoadTestRequest"
+
+// KindStopLoadTestRequest is ...
 const KindStopLoadTestRequest = "StopLoadTestRequest"
+
+// KindWorkerLoadTestMetrics is ...
 const KindWorkerLoadTestMetrics = "WorkerLoadTestMetrics"
 
+// KindServerInfo is ...
 const KindServerInfo = "ServerInfo"
+
+// KindWorkerInfo is ...
 const KindWorkerInfo = "WorkerInfo"
+
+// KindWorkersInfo is ...
 const KindWorkersInfo = "WorkersInfo"
 
+// StartLoadTestRequest is ...
 type StartLoadTestRequest struct {
 	Method   string `json:"method"`
 	URL      string `json:"url"`
@@ -29,6 +41,7 @@ type StartLoadTestRequest struct {
 	Body   string `json:"body"`
 }
 
+// WorkerLoadTestMetrics is ...
 type WorkerLoadTestMetrics struct {
 	// Duration is the duration of the attack.
 	Duration time.Duration `json:"duration"`
@@ -54,22 +67,39 @@ type WorkerLoadTestMetrics struct {
 	Errors []string `json:"errors"`
 }
 
+// WorkerState is ...
 type WorkerState int
 
+// WorkerStateNotStarted is ...
 const WorkerStateNotStarted = WorkerState(0)
+
+// WorkerStateRunning is ...
 const WorkerStateRunning = WorkerState(1)
+
+// WorkerStateDone is ...
 const WorkerStateDone = WorkerState(2)
+
+// WorkerStateStopped is ...
 const WorkerStateStopped = WorkerState(3)
 
+// WorkerInfo is ...
 type WorkerInfo struct {
 	State WorkerState `json:"state"`
 }
 
+// ServerStateNotStarted is ...
 const ServerStateNotStarted = 0
+
+// ServerStateRunning is ...
 const ServerStateRunning = 1
+
+// ServerStateDone is ...
 const ServerStateDone = 2
+
+// ServerStateStopped is ...
 const ServerStateStopped = 3
 
+// ServerInfo is ...
 type ServerInfo struct {
 	NumOfWorkers int    `json:"num_of_workers"`
 	State        string `json:"state"`

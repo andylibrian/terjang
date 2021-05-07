@@ -26,10 +26,12 @@ func init() {
 	logger = l.Sugar()
 }
 
+// SetLogger is ...
 func SetLogger(l *zap.SugaredLogger) {
 	logger = l
 }
 
+// Worker is ...
 type Worker struct {
 	name                 string
 	conn                 *websocket.Conn
@@ -43,6 +45,7 @@ type Worker struct {
 	connectedCallbacks   []func()
 }
 
+// MessageHandler is ...
 type MessageHandler interface {
 	HandleMessage(message []byte)
 }
@@ -51,6 +54,7 @@ type defaultMessageHandler struct {
 	worker *Worker
 }
 
+// NewWorker is ...
 func NewWorker() *Worker {
 	worker := &Worker{
 		connectRetryInterval: 5 * time.Second,
@@ -63,10 +67,12 @@ func NewWorker() *Worker {
 	return worker
 }
 
+// SetName is ...
 func (w *Worker) SetName(name string) {
 	w.name = name
 }
 
+// Run is ...
 func (w *Worker) Run(addr string) {
 	serverURL := url.URL{Scheme: "ws", Host: addr, Path: "/cluster/join", RawQuery: "name=" + w.name}
 
@@ -110,10 +116,12 @@ func (w *Worker) Run(addr string) {
 	}
 }
 
+// SetConnectRetryInterval is ...
 func (w *Worker) SetConnectRetryInterval(d time.Duration) {
 	w.connectRetryInterval = d
 }
 
+// SendMessageToServer is ...
 func (w *Worker) SendMessageToServer(message []byte) {
 	if w.conn == nil {
 		logger.Errorw("Can not send message to server because we are disconnected")
@@ -125,14 +133,17 @@ func (w *Worker) SendMessageToServer(message []byte) {
 	}
 }
 
+// GetMessageHandler is ...
 func (w *Worker) GetMessageHandler() MessageHandler {
 	return w.messageHandler
 }
 
+// SetMessageHandler is ...
 func (w *Worker) SetMessageHandler(h MessageHandler) {
 	w.messageHandler = h
 }
 
+// AddConnectedCallback is ...
 func (w *Worker) AddConnectedCallback(f func()) {
 	w.connectedCallbacks = append(w.connectedCallbacks, f)
 }
@@ -232,6 +243,7 @@ func (w *Worker) stopLoadTest() {
 	w.attacker.Stop()
 }
 
+// LoopSendMetricsToServer is ...
 func (w *Worker) LoopSendMetricsToServer() {
 	for {
 		if w.loadTestState == messages.WorkerStateRunning || w.loadTestState == messages.WorkerStateDone {
@@ -242,6 +254,7 @@ func (w *Worker) LoopSendMetricsToServer() {
 	}
 }
 
+// SendMetricsToServer is ...
 func (w *Worker) SendMetricsToServer() {
 	w.metricsLock.Lock()
 	w.metrics.Close()

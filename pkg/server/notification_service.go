@@ -6,17 +6,20 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+// NotificationService is ...
 type NotificationService struct {
 	subscribers     map[*websocket.Conn]struct{}
 	subscribersLock sync.RWMutex
 }
 
+// NewNotificationService is ...
 func NewNotificationService() *NotificationService {
 	return &NotificationService{
 		subscribers: make(map[*websocket.Conn]struct{}),
 	}
 }
 
+// AddSubscriber is ...
 func (n *NotificationService) AddSubscriber(conn *websocket.Conn) {
 	n.subscribersLock.Lock()
 	defer n.subscribersLock.Unlock()
@@ -24,6 +27,7 @@ func (n *NotificationService) AddSubscriber(conn *websocket.Conn) {
 	n.subscribers[conn] = struct{}{}
 }
 
+// RemoveSubscriber is ...
 func (n *NotificationService) RemoveSubscriber(conn *websocket.Conn) {
 	n.subscribersLock.Lock()
 	defer n.subscribersLock.Unlock()
@@ -31,6 +35,7 @@ func (n *NotificationService) RemoveSubscriber(conn *websocket.Conn) {
 	delete(n.subscribers, conn)
 }
 
+// BroadcastMessageToSubscribers ..
 func (n *NotificationService) BroadcastMessageToSubscribers(message []byte) {
 	n.subscribersLock.RLock()
 	defer n.subscribersLock.RUnlock()

@@ -16,6 +16,7 @@ type worker struct {
 	StateStr string `json:"state"`
 }
 
+// WorkerService is ...
 type WorkerService struct {
 	messageHandler MessageHandler
 	workers        map[*websocket.Conn]*worker
@@ -23,6 +24,7 @@ type WorkerService struct {
 	stateUpdatedCh chan struct{}
 }
 
+// MessageHandler is ...
 type MessageHandler interface {
 	HandleMessage(conn *websocket.Conn, message []byte)
 }
@@ -31,6 +33,7 @@ type defaultMessageHandler struct {
 	workerService *WorkerService
 }
 
+// NewWorkerService is ...
 func NewWorkerService() *WorkerService {
 	w := &WorkerService{
 		workers:        make(map[*websocket.Conn]*worker),
@@ -42,14 +45,17 @@ func NewWorkerService() *WorkerService {
 	return w
 }
 
+// GetMessageHandler is ...
 func (w *WorkerService) GetMessageHandler() MessageHandler {
 	return w.messageHandler
 }
 
+// SetMessageHandler is ...
 func (w *WorkerService) SetMessageHandler(h MessageHandler) {
 	w.messageHandler = h
 }
 
+// AddWorker is ...
 func (w *WorkerService) AddWorker(conn *websocket.Conn, name string) {
 	w.workersLock.Lock()
 	defer w.workersLock.Unlock()
@@ -57,6 +63,7 @@ func (w *WorkerService) AddWorker(conn *websocket.Conn, name string) {
 	w.workers[conn] = &worker{conn: conn, Name: name}
 }
 
+// RemoveWorker is ...
 func (w *WorkerService) RemoveWorker(conn *websocket.Conn) {
 	w.workersLock.Lock()
 	defer w.workersLock.Unlock()
@@ -64,6 +71,7 @@ func (w *WorkerService) RemoveWorker(conn *websocket.Conn) {
 	delete(w.workers, conn)
 }
 
+// BroadcastMessageToWorkers is ...
 func (w *WorkerService) BroadcastMessageToWorkers(message []byte) {
 	w.workersLock.RLock()
 	defer w.workersLock.RUnlock()

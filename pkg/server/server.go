@@ -35,10 +35,12 @@ func init() {
 	logger = l.Sugar()
 }
 
+// SetLogger is ...
 func SetLogger(l *zap.SugaredLogger) {
 	logger = l
 }
 
+// Server is ...
 type Server struct {
 	upgrader            websocket.Upgrader
 	workerService       *WorkerService
@@ -94,6 +96,7 @@ func (s *Server) Run(addr string) error {
 	return nil
 }
 
+// Close is ...
 func (s *Server) Close() error {
 	if s.httpServer == nil {
 		return nil
@@ -243,6 +246,7 @@ func (s *Server) runNotificationLoop() {
 	}
 }
 
+// StartLoadTest is ...
 func (s *Server) StartLoadTest(r *messages.StartLoadTestRequest) {
 	req, _ := json.Marshal(r)
 	envelope, _ := json.Marshal(messages.Envelope{Kind: messages.KindStartLoadTestRequest, Data: string(req)})
@@ -253,6 +257,7 @@ func (s *Server) StartLoadTest(r *messages.StartLoadTestRequest) {
 	logger.Infow("Started load test", "request", r)
 }
 
+// StopLoadTest is ...
 func (s *Server) StopLoadTest() {
 	envelope, _ := json.Marshal(messages.Envelope{Kind: messages.KindStopLoadTestRequest})
 	s.GetWorkerService().BroadcastMessageToWorkers(envelope)
