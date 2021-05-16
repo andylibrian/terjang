@@ -16,7 +16,8 @@ type worker struct {
 	StateStr string `json:"state"`
 }
 
-// WorkerService is ...
+// WorkerService is a struct type that has 4 fields;
+// messageHandler, workers, workersLock and stateUpdatedCh
 type WorkerService struct {
 	messageHandler MessageHandler
 	workers        map[*websocket.Conn]*worker
@@ -24,7 +25,7 @@ type WorkerService struct {
 	stateUpdatedCh chan struct{}
 }
 
-// MessageHandler is ...
+// MessageHandler is an interface type for handling message that has HandleMessage function
 type MessageHandler interface {
 	HandleMessage(conn *websocket.Conn, message []byte)
 }
@@ -33,7 +34,7 @@ type defaultMessageHandler struct {
 	workerService *WorkerService
 }
 
-// NewWorkerService is ...
+// NewWorkerService is a function that returns a new WorkerService
 func NewWorkerService() *WorkerService {
 	w := &WorkerService{
 		workers:        make(map[*websocket.Conn]*worker),
@@ -45,17 +46,17 @@ func NewWorkerService() *WorkerService {
 	return w
 }
 
-// GetMessageHandler is ...
+// GetMessageHandler is a method that has a receiver type of *WorkerService and returns a MessageHandler
 func (w *WorkerService) GetMessageHandler() MessageHandler {
 	return w.messageHandler
 }
 
-// SetMessageHandler is ...
+// SetMessageHandler is a method of setting a MessageHandler that has receiver type of *WorkerService
 func (w *WorkerService) SetMessageHandler(h MessageHandler) {
 	w.messageHandler = h
 }
 
-// AddWorker is ...
+// AddWorker is is a method of adding a Worker that has receiver type of *WorkerService
 func (w *WorkerService) AddWorker(conn *websocket.Conn, name string) {
 	w.workersLock.Lock()
 	defer w.workersLock.Unlock()
@@ -63,7 +64,7 @@ func (w *WorkerService) AddWorker(conn *websocket.Conn, name string) {
 	w.workers[conn] = &worker{conn: conn, Name: name}
 }
 
-// RemoveWorker is ...
+// RemoveWorker is a method of deleting a worker that has receiver type of *WorkerService
 func (w *WorkerService) RemoveWorker(conn *websocket.Conn) {
 	w.workersLock.Lock()
 	defer w.workersLock.Unlock()
@@ -71,7 +72,7 @@ func (w *WorkerService) RemoveWorker(conn *websocket.Conn) {
 	delete(w.workers, conn)
 }
 
-// BroadcastMessageToWorkers is ...
+// BroadcastMessageToWorkers is a method of writing to websocket that has receiver type *WorkerService
 func (w *WorkerService) BroadcastMessageToWorkers(message []byte) {
 	w.workersLock.RLock()
 	defer w.workersLock.RUnlock()

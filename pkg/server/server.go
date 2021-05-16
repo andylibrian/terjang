@@ -35,12 +35,15 @@ func init() {
 	logger = l.Sugar()
 }
 
-// SetLogger is ...
+/* SetLogger is a function that sets a logger and takes 1 parameter with type pointer of zap.SugaredLogger
+********************************************/
 func SetLogger(l *zap.SugaredLogger) {
 	logger = l
 }
 
-// Server is ...
+/* Server is a struct type that has 5 fields;
+* upgrader, workerService, notificationService, httpServer and loadTestState
+*********************************************/
 type Server struct {
 	upgrader            websocket.Upgrader
 	workerService       *WorkerService
@@ -96,7 +99,7 @@ func (s *Server) Run(addr string) error {
 	return nil
 }
 
-// Close is ...
+// Close is a method that close an httpServer and has a receiver type of *Server and returns a type error, a built-in interface
 func (s *Server) Close() error {
 	if s.httpServer == nil {
 		return nil
@@ -246,7 +249,9 @@ func (s *Server) runNotificationLoop() {
 	}
 }
 
-// StartLoadTest is ...
+/* StartLoadTest is a method to start a load test that has a receiver type of *Server and takes one parameter;
+* *messages.StartLoadTestRequest
+*********************************************************************/
 func (s *Server) StartLoadTest(r *messages.StartLoadTestRequest) {
 	req, _ := json.Marshal(r)
 	envelope, _ := json.Marshal(messages.Envelope{Kind: messages.KindStartLoadTestRequest, Data: string(req)})
@@ -257,7 +262,7 @@ func (s *Server) StartLoadTest(r *messages.StartLoadTestRequest) {
 	logger.Infow("Started load test", "request", r)
 }
 
-// StopLoadTest is ...
+// StopLoadTest is a method to stop a load test that has a receiver type of *Server
 func (s *Server) StopLoadTest() {
 	envelope, _ := json.Marshal(messages.Envelope{Kind: messages.KindStopLoadTestRequest})
 	s.GetWorkerService().BroadcastMessageToWorkers(envelope)

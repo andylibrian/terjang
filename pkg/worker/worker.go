@@ -26,12 +26,14 @@ func init() {
 	logger = l.Sugar()
 }
 
-// SetLogger is ...
+// SetLogger is a function that sets a logger and takes a parameter of *zap.SugaredLogger
 func SetLogger(l *zap.SugaredLogger) {
 	logger = l
 }
 
-// Worker is ...
+// Worker is a struct type that has 10 fields;
+// name, conn, connWriteLock, messageHandler, connectRetryInterval, attacker, metrics, metricsLock, loadTestState
+// connectedCallbacks
 type Worker struct {
 	name                 string
 	conn                 *websocket.Conn
@@ -45,7 +47,7 @@ type Worker struct {
 	connectedCallbacks   []func()
 }
 
-// MessageHandler is ...
+// MessageHandler is a interface type that has 1 method; HandleMessage
 type MessageHandler interface {
 	HandleMessage(message []byte)
 }
@@ -54,7 +56,7 @@ type defaultMessageHandler struct {
 	worker *Worker
 }
 
-// NewWorker is ...
+// NewWorker is function that returns a new *Worker
 func NewWorker() *Worker {
 	worker := &Worker{
 		connectRetryInterval: 5 * time.Second,
@@ -67,12 +69,14 @@ func NewWorker() *Worker {
 	return worker
 }
 
-// SetName is ...
+// SetName is a method of setting a Name that has a receiver type of *Worker and takes a parameter;
+// name
 func (w *Worker) SetName(name string) {
 	w.name = name
 }
 
-// Run is ...
+// Run is a method of running a worker that has a receiver type of *Worker and takes a parameter;
+// addr
 func (w *Worker) Run(addr string) {
 	serverURL := url.URL{Scheme: "ws", Host: addr, Path: "/cluster/join", RawQuery: "name=" + w.name}
 
@@ -116,12 +120,14 @@ func (w *Worker) Run(addr string) {
 	}
 }
 
-// SetConnectRetryInterval is ...
+// SetConnectRetryInterval is a method of setting up a connectRetryInterval and that has a receiver type *Worker and takes a parameter;
+// time.duration
 func (w *Worker) SetConnectRetryInterval(d time.Duration) {
 	w.connectRetryInterval = d
 }
 
-// SendMessageToServer is ...
+// SendMessageToServer is a method writing to a websocket that has a receiver type *Worker and takes a parameter;
+// message
 func (w *Worker) SendMessageToServer(message []byte) {
 	if w.conn == nil {
 		logger.Errorw("Can not send message to server because we are disconnected")
@@ -133,17 +139,17 @@ func (w *Worker) SendMessageToServer(message []byte) {
 	}
 }
 
-// GetMessageHandler is ...
+// GetMessageHandler is a method of returning a messageHandler that has a receiver type *Worker
 func (w *Worker) GetMessageHandler() MessageHandler {
 	return w.messageHandler
 }
 
-// SetMessageHandler is ...
+// SetMessageHandler is a method of setting a message handler that has a receiver type *Worker
 func (w *Worker) SetMessageHandler(h MessageHandler) {
 	w.messageHandler = h
 }
 
-// AddConnectedCallback is ...
+// AddConnectedCallback is a method of appending callbacks that has a receiver type *Worker
 func (w *Worker) AddConnectedCallback(f func()) {
 	w.connectedCallbacks = append(w.connectedCallbacks, f)
 }
@@ -243,7 +249,7 @@ func (w *Worker) stopLoadTest() {
 	w.attacker.Stop()
 }
 
-// LoopSendMetricsToServer is ...
+// LoopSendMetricsToServer is a method of settng up looping interval that has receiver type *Worker
 func (w *Worker) LoopSendMetricsToServer() {
 	for {
 		if w.loadTestState == messages.WorkerStateRunning || w.loadTestState == messages.WorkerStateDone {
@@ -254,7 +260,7 @@ func (w *Worker) LoopSendMetricsToServer() {
 	}
 }
 
-// SendMetricsToServer is ...
+// SendMetricsToServer is a method of sending message to server that has receiver type *Worker
 func (w *Worker) SendMetricsToServer() {
 	w.metricsLock.Lock()
 	w.metrics.Close()
