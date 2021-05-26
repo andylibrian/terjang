@@ -26,14 +26,13 @@ func init() {
 	logger = l.Sugar()
 }
 
-// SetLogger is a function that sets a logger and takes a parameter of *zap.SugaredLogger
+// SetLogger registers a logger to be used by terjang worker.
 func SetLogger(l *zap.SugaredLogger) {
 	logger = l
 }
 
-// Worker is a struct type that has 10 fields;
-// name, conn, connWriteLock, messageHandler, connectRetryInterval, attacker, metrics, metricsLock, loadTestState
-// connectedCallbacks
+// Worker represents a worker object. It receives commands from server
+// to start and stop a load test. It also reports metrics to the server.
 type Worker struct {
 	name                 string
 	conn                 *websocket.Conn
@@ -47,7 +46,7 @@ type Worker struct {
 	connectedCallbacks   []func()
 }
 
-// MessageHandler is a interface type that has 1 method; HandleMessage
+// MessageHandler is interface to handle message from the server.
 type MessageHandler interface {
 	HandleMessage(message []byte)
 }
@@ -56,7 +55,7 @@ type defaultMessageHandler struct {
 	worker *Worker
 }
 
-// NewWorker is function that returns a new *Worker
+// NewWorker creates a new worker.
 func NewWorker() *Worker {
 	worker := &Worker{
 		connectRetryInterval: 5 * time.Second,
@@ -69,14 +68,13 @@ func NewWorker() *Worker {
 	return worker
 }
 
-// SetName is a method of setting a Name that has a receiver type of *Worker and takes a parameter;
-// name
+// SetName sets worker name.
 func (w *Worker) SetName(name string) {
 	w.name = name
 }
 
-// Run is a method of running a worker that has a receiver type of *Worker and takes a parameter;
-// addr
+// Run connects to the server to establish communication to receive start and stop load test requests.
+// The connection is also used to reports metrics.
 func (w *Worker) Run(addr string) {
 	serverURL := url.URL{Scheme: "ws", Host: addr, Path: "/cluster/join", RawQuery: "name=" + w.name}
 
@@ -120,14 +118,13 @@ func (w *Worker) Run(addr string) {
 	}
 }
 
-// SetConnectRetryInterval is a method of setting up a connectRetryInterval and that has a receiver type *Worker and takes a parameter;
-// time.duration
+// SetConnectRetryInterval sets connect retry interval. On connect failure, worker retries with backoff time
+// set by this function.
 func (w *Worker) SetConnectRetryInterval(d time.Duration) {
 	w.connectRetryInterval = d
 }
 
-// SendMessageToServer is a method writing to a websocket that has a receiver type *Worker and takes a parameter;
-// message
+// SendMessageToServer sends a message to the connected server.
 func (w *Worker) SendMessageToServer(message []byte) {
 	if w.conn == nil {
 		logger.Errorw("Can not send message to server because we are disconnected")
@@ -139,17 +136,17 @@ func (w *Worker) SendMessageToServer(message []byte) {
 	}
 }
 
-// GetMessageHandler is a method of returning a messageHandler that has a receiver type *Worker
+// GetMessageHandler returns the registered message handler.
 func (w *Worker) GetMessageHandler() MessageHandler {
 	return w.messageHandler
 }
 
-// SetMessageHandler is a method of setting a message handler that has a receiver type *Worker
+// SetMessageHandler registers a message handler.
 func (w *Worker) SetMessageHandler(h MessageHandler) {
 	w.messageHandler = h
 }
 
-// AddConnectedCallback is a method of appending callbacks that has a receiver type *Worker
+// AddConnectedCallback registers a callback function that will be called on connected to server.
 func (w *Worker) AddConnectedCallback(f func()) {
 	w.connectedCallbacks = append(w.connectedCallbacks, f)
 }
@@ -249,7 +246,7 @@ func (w *Worker) stopLoadTest() {
 	w.attacker.Stop()
 }
 
-// LoopSendMetricsToServer is a method of settng up looping interval that has receiver type *Worker
+// LoopSendMetricsToServer is the loop function that sends metrics to server every second.
 func (w *Worker) LoopSendMetricsToServer() {
 	for {
 		if w.loadTestState == messages.WorkerStateRunning || w.loadTestState == messages.WorkerStateDone {
@@ -260,7 +257,7 @@ func (w *Worker) LoopSendMetricsToServer() {
 	}
 }
 
-// SendMetricsToServer is a method of sending message to server that has receiver type *Worker
+// SendMetricsToServer sends metrics to the server.
 func (w *Worker) SendMetricsToServer() {
 	w.metricsLock.Lock()
 	w.metrics.Close()

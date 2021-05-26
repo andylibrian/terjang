@@ -6,26 +6,21 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-/* NotificationService is a struct type that has 2 fields;
-* map[*websocket.Conn]struct{} subscribers
-* sync.RWMutex subscribersLock
-****************************************************************/
+// NotificationService maintains a collection of subscribers and
+// provide a function to broadcast messages to them.
 type NotificationService struct {
 	subscribers     map[*websocket.Conn]struct{}
 	subscribersLock sync.RWMutex
 }
 
-/* NewNotificationService is a function of NotificationService pointer
-*******************************************************************/
+// NewNotificationService creates a new notification service.
 func NewNotificationService() *NotificationService {
 	return &NotificationService{
 		subscribers: make(map[*websocket.Conn]struct{}),
 	}
 }
 
-/* AddSubscriber is a method to add subscriber that has a receiver type of *NotificationService
-* and takes a parameter of type conn
-******************************************************************/
+// AddSubscriber registers a subscriber to the collection.
 func (n *NotificationService) AddSubscriber(conn *websocket.Conn) {
 	n.subscribersLock.Lock()
 	defer n.subscribersLock.Unlock()
@@ -33,9 +28,7 @@ func (n *NotificationService) AddSubscriber(conn *websocket.Conn) {
 	n.subscribers[conn] = struct{}{}
 }
 
-/* RemoveSubscriber is a method to remove a subscriber that has a receiver type of *NotificationService
-* and takes a parameter of type conn
-******************************************************************/
+// RemoveSubscriber removes a subscriber from the collection.
 func (n *NotificationService) RemoveSubscriber(conn *websocket.Conn) {
 	n.subscribersLock.Lock()
 	defer n.subscribersLock.Unlock()
@@ -43,9 +36,7 @@ func (n *NotificationService) RemoveSubscriber(conn *websocket.Conn) {
 	delete(n.subscribers, conn)
 }
 
-/* BroadcastMessageToSubscribers is a method to writeMessage to a websocket that has a receiver type of *NotificationService
-* and takes a parameter of type []byte
-******************************************************************/
+// BroadcastMessageToSubscribers sends a message to all of the registered subscribers.
 func (n *NotificationService) BroadcastMessageToSubscribers(message []byte) {
 	n.subscribersLock.RLock()
 	defer n.subscribersLock.RUnlock()

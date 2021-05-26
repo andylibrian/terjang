@@ -6,36 +6,33 @@ import (
 	vegeta "github.com/tsenart/vegeta/v12/lib"
 )
 
-/* Envelope is a struct type that has two fields;
-* string constant Kind and string Data variables
-* Kind values include KindStartLoadTestRequest, KindStopLoadTestRequest, KindWorkerLoadTestMetrics, KindServerInfo, KindWorkerInfo and KindWorkersInfo
-************************************************/
+// Envelope is a messaging wrapper for the communication between the server, workers, and UI.
 type Envelope struct {
 	Kind string `json:"kind"`
 	Data string `json:"data"`
 }
 
-// KindStartLoadTestRequest is a const string flagging data for Starting Load Test Request
+// KindStartLoadTestRequest is a kind that indicates a request to start a load test.
 const KindStartLoadTestRequest = "StartLoadTestRequest"
 
-// KindStopLoadTestRequest is a const string flagging data for Stopping Load Test Request
+// KindStopLoadTestRequest is a kind that indicates a request to stop a load test.
 const KindStopLoadTestRequest = "StopLoadTestRequest"
 
-// KindWorkerLoadTestMetrics is a const string flagging data for Worker when loading Test Metrics
+// KindWorkerLoadTestMetrics is a kind that indicates the envelope contains load test metrics from worker.
 const KindWorkerLoadTestMetrics = "WorkerLoadTestMetrics"
 
-// KindServerInfo is a const string flagging data for Server Info
+// KindServerInfo is a kind that indicates the envelope contains server info.
 const KindServerInfo = "ServerInfo"
 
-// KindWorkerInfo is a const string flagging data for Worker Info
+// KindWorkerInfo is a kind that indicates the envelope contains worker info.
 const KindWorkerInfo = "WorkerInfo"
 
-// KindWorkersInfo is a const string flagging data for Workers Info
+// KindWorkersInfo is a kind that indicates the envelope contains workers info.
 const KindWorkersInfo = "WorkersInfo"
 
-/* StartLoadTestRequest is a struct type that has 6 fields;
-* string Method, string URL, uint64 Duration, uint64 Rate, string Header and string Body
-***********************************************/
+// StartLoadTestRequest is a struct type containing the detail of a load test request.
+// It is sent from server to workers. Upon receiving this, workers should start
+// running the load test.
 type StartLoadTestRequest struct {
 	Method   string `json:"method"`
 	URL      string `json:"url"`
@@ -46,11 +43,8 @@ type StartLoadTestRequest struct {
 	Body   string `json:"body"`
 }
 
-/* WorkerLoadTestMetrics is a struct type that has 11 fields;
-* time.Duration Duration, time.Duration Wait, uint64 Requests, float64 Rate,  float64 Throughput,
-* float64 Success, vegeta.LatencyMetrics Latency, vegeta.ByteMetrics BytesIn, vegeta.ByteMetrics BytesOut,
-* map[string]int StatusCodes, []string Errors
-***********************************************/
+// WorkerLoadTestMetrics is a struct type containing load test metrics from a worker.
+// It is sent from workers to the server.
 type WorkerLoadTestMetrics struct {
 	// Duration is the duration of the attack.
 	Duration time.Duration `json:"duration"`
@@ -76,39 +70,39 @@ type WorkerLoadTestMetrics struct {
 	Errors []string `json:"errors"`
 }
 
-// WorkerState is a custom int type
+// WorkerState indicates worker state
 type WorkerState int
 
-// WorkerStateNotStarted is a const WorkerState custom type with value 0
+// WorkerStateNotStarted indicates that the worker is not started.
 const WorkerStateNotStarted = WorkerState(0)
 
-// WorkerStateRunning is a const WorkerState custom type with value 1
+// WorkerStateRunning indicates that the worker is running a load test.
 const WorkerStateRunning = WorkerState(1)
 
-// WorkerStateDone is a const WorkerState custom type with value 2
+// WorkerStateDone indicates that the worker is done running a load test.
 const WorkerStateDone = WorkerState(2)
 
-// WorkerStateStopped is a const WorkerState custom type with value 3
+// WorkerStateStopped indicates that the worker has stopped running a load test before completed.
 const WorkerStateStopped = WorkerState(3)
 
-// WorkerInfo is a struct type that has 1 field; WorkerState State
+// WorkerInfo is a messaging type containing worker information.
 type WorkerInfo struct {
 	State WorkerState `json:"state"`
 }
 
-// ServerStateNotStarted is a const string with value 0
+// ServerStateNotStarted indicates that the server sees that its workers are not started.
 const ServerStateNotStarted = 0
 
-// ServerStateRunning is a const string with value 1
+// ServerStateRunning indicates that the server sees that its workers are running a load test.
 const ServerStateRunning = 1
 
-// ServerStateDone is a const string with value 2
+// ServerStateDone indicates that the server sees that its workers are done running a load test.
 const ServerStateDone = 2
 
-// ServerStateStopped is a const string with value 3
+// ServerStateStopped indicates that the server sees that its workers have stopped running a load test before completed.
 const ServerStateStopped = 3
 
-// ServerInfo is a struct type that has 2 fields; int NumOfWorkers and string State
+// ServerInfo is a messaging  type containing server information.
 type ServerInfo struct {
 	NumOfWorkers int    `json:"num_of_workers"`
 	State        string `json:"state"`
