@@ -26,10 +26,13 @@ func init() {
 	logger = l.Sugar()
 }
 
+// SetLogger registers a logger to be used by terjang worker.
 func SetLogger(l *zap.SugaredLogger) {
 	logger = l
 }
 
+// Worker represents a worker object. It receives commands from server
+// to start and stop a load test. It also reports metrics to the server.
 type Worker struct {
 	name                 string
 	conn                 *websocket.Conn
@@ -43,6 +46,7 @@ type Worker struct {
 	connectedCallbacks   []func()
 }
 
+// MessageHandler is interface to handle message from the server.
 type MessageHandler interface {
 	HandleMessage(message []byte)
 }
@@ -51,6 +55,7 @@ type defaultMessageHandler struct {
 	worker *Worker
 }
 
+// NewWorker creates a new worker.
 func NewWorker() *Worker {
 	worker := &Worker{
 		connectRetryInterval: 5 * time.Second,
@@ -63,10 +68,13 @@ func NewWorker() *Worker {
 	return worker
 }
 
+// SetName sets worker name.
 func (w *Worker) SetName(name string) {
 	w.name = name
 }
 
+// Run connects to the server to establish communication to receive start and stop load test requests.
+// The connection is also used to reports metrics.
 func (w *Worker) Run(addr string) {
 	serverURL := url.URL{Scheme: "ws", Host: addr, Path: "/cluster/join", RawQuery: "name=" + w.name}
 
@@ -110,10 +118,13 @@ func (w *Worker) Run(addr string) {
 	}
 }
 
+// SetConnectRetryInterval sets connect retry interval. On connect failure, worker retries with backoff time
+// set by this function.
 func (w *Worker) SetConnectRetryInterval(d time.Duration) {
 	w.connectRetryInterval = d
 }
 
+// SendMessageToServer sends a message to the connected server.
 func (w *Worker) SendMessageToServer(message []byte) {
 	if w.conn == nil {
 		logger.Errorw("Can not send message to server because we are disconnected")
@@ -125,14 +136,17 @@ func (w *Worker) SendMessageToServer(message []byte) {
 	}
 }
 
+// GetMessageHandler returns the registered message handler.
 func (w *Worker) GetMessageHandler() MessageHandler {
 	return w.messageHandler
 }
 
+// SetMessageHandler registers a message handler.
 func (w *Worker) SetMessageHandler(h MessageHandler) {
 	w.messageHandler = h
 }
 
+// AddConnectedCallback registers a callback function that will be called on connected to server.
 func (w *Worker) AddConnectedCallback(f func()) {
 	w.connectedCallbacks = append(w.connectedCallbacks, f)
 }
@@ -232,6 +246,7 @@ func (w *Worker) stopLoadTest() {
 	w.attacker.Stop()
 }
 
+// LoopSendMetricsToServer is the loop function that sends metrics to server every second.
 func (w *Worker) LoopSendMetricsToServer() {
 	for {
 		if w.loadTestState == messages.WorkerStateRunning || w.loadTestState == messages.WorkerStateDone {
@@ -242,6 +257,7 @@ func (w *Worker) LoopSendMetricsToServer() {
 	}
 }
 
+// SendMetricsToServer sends metrics to the server.
 func (w *Worker) SendMetricsToServer() {
 	w.metricsLock.Lock()
 	w.metrics.Close()

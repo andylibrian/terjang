@@ -35,10 +35,13 @@ func init() {
 	logger = l.Sugar()
 }
 
+// SetLogger registers a logger to be used by terjang server.
 func SetLogger(l *zap.SugaredLogger) {
 	logger = l
 }
 
+// Server represents a server. It coordinates multiple workers, collect
+// metrics and send notifications to subscribers.
 type Server struct {
 	upgrader            websocket.Upgrader
 	workerService       *WorkerService
@@ -94,6 +97,7 @@ func (s *Server) Run(addr string) error {
 	return nil
 }
 
+// Close is a method that close an httpServer and has a receiver type of *Server and returns a type error, a built-in interface
 func (s *Server) Close() error {
 	if s.httpServer == nil {
 		return nil
@@ -243,6 +247,7 @@ func (s *Server) runNotificationLoop() {
 	}
 }
 
+// StartLoadTest sends a request to workers to start a load test.
 func (s *Server) StartLoadTest(r *messages.StartLoadTestRequest) {
 	req, _ := json.Marshal(r)
 	envelope, _ := json.Marshal(messages.Envelope{Kind: messages.KindStartLoadTestRequest, Data: string(req)})
@@ -253,6 +258,7 @@ func (s *Server) StartLoadTest(r *messages.StartLoadTestRequest) {
 	logger.Infow("Started load test", "request", r)
 }
 
+// StopLoadTest sends a request to workers to stop a load test.
 func (s *Server) StopLoadTest() {
 	envelope, _ := json.Marshal(messages.Envelope{Kind: messages.KindStopLoadTestRequest})
 	s.GetWorkerService().BroadcastMessageToWorkers(envelope)
