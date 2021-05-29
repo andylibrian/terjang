@@ -2,6 +2,7 @@
 Scalable HTTP load testing tool built on [Vegeta](https://github.com/tsenart/vegeta).
 
 [![Build status](https://img.shields.io/github/workflow/status/andylibrian/terjang/CI?style=flat)](https://github.com/andylibrian/terjang/actions)
+[![Go Report Card](https://goreportcard.com/badge/github.com/andylibrian/terjang)](https://goreportcard.com/report/github.com/andylibrian/terjang)
 
 
 ## Features
