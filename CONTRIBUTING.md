@@ -3,7 +3,7 @@
 ## Development
 
 Prerequisites:
-- Go (tested version: 1.15)
+- Go (tested version: 1.16)
 - Node (tested version: 14)
 
 Build backend:
