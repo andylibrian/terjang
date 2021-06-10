@@ -127,7 +127,7 @@ func (s *Server) setupRouter() (*httprouter.Router, error) {
 
 	router.GET("/healthz", s.handleHealthz)
 
-	router.GET("/api/v1/server_info", s.getServerInfo)
+	router.GET("/api/v1/server_info", s.handleServerInfo)
 
 	// CORS
 	router.GlobalOPTIONS = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -344,12 +344,10 @@ func (s *Server) handleHealthz(responseWriter http.ResponseWriter, req *http.Req
 	responseWriter.WriteHeader(200)
 }
 
-func (s *Server) getServerInfo(responseWriter http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-	// Server Info (Body: Json Content-type)
+func (s *Server) handleServerInfo(responseWriter http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	serverInfo := messages.ServerInfo{NumOfWorkers: len(s.workerService.workers), State: loadTestStateToString(s.loadTestState)}
 	serverInfoMsg, _ := json.Marshal(serverInfo)
 
-	//Header: Json Content-type
 	header := responseWriter.Header()
 	header.Set("Content-Type", "application/json")
 
