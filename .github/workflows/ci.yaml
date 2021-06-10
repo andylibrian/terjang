@@ -16,6 +16,7 @@ jobs:
           node-version: '14'
 
       # prepare
+      - run: npm install -g npm
       - run: cd web; npm ci
       - run: GO111MODULE=off go get github.com/rakyll/statik
       - run: cd web; ./node_modules/.bin/vue-cli-service build
