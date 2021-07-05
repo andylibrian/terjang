@@ -109,7 +109,7 @@ func TestServerBroadcastMessagesToWorker(t *testing.T) {
 		connected2 <- struct{}{}
 	})
 
-	go worker1.Run("127.0.01:9009")
+	go worker1.Run("127.0.0.1:9009")
 	go worker2.Run("127.0.0.1:9009")
 
 	<-connected1
