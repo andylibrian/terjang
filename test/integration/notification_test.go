@@ -15,7 +15,7 @@ import (
 )
 
 type stubWorker struct {
-	Name     string                         `json:"name`
+	Name     string                         `json:"name"`
 	Metrics  messages.WorkerLoadTestMetrics `json:"metrics"`
 	StateStr string                         `json:"state"`
 }
