@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/andylibrian/terjang/pkg/server"
+	"github.com/andylibrian/terjang/pkg/worker"
 )
 
 func TestHandleServerInfo(t *testing.T) {
@@ -31,8 +32,20 @@ func TestHandleWorkersInfo(t *testing.T) {
 
 	//Mock server
 	server := server.NewServer()
-	go server.Run("127.0.0.1:9029")
+	go server.Run("127.0.0.1:9019")
 	defer server.Close()
+
+	worker := worker.NewWorker()
+	worker.SetConnectRetryInterval(connectRetryInterval)
+
+	// Wait for worker to be connected
+	connected := make(chan struct{})
+	worker.AddConnectedCallback(func() {
+		connected <- struct{}{}
+	})
+
+	go worker.Run("127.0.0.1:9019")
+	<-connected
 
 	//Http request GET server_info
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/worker_info", nil)
