@@ -7,6 +7,7 @@ import (
 
 	"github.com/andylibrian/terjang/pkg/server"
 	"github.com/andylibrian/terjang/pkg/worker"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestHandleServerInfo(t *testing.T) {
@@ -24,9 +25,7 @@ func TestHandleServerInfo(t *testing.T) {
 
 	resp := w.Result()
 
-	if resp.StatusCode != http.StatusOK {
-		t.Errorf("got status %d but wanted %d", resp.StatusCode, http.StatusOK)
-	}
+	assert.Equal(t, resp.StatusCode, http.StatusOK)
 }
 func TestHandleWorkersInfo(t *testing.T) {
 
@@ -55,7 +54,5 @@ func TestHandleWorkersInfo(t *testing.T) {
 
 	resp := w.Result()
 
-	if resp.StatusCode != http.StatusOK {
-		t.Errorf("got status %d but wanted %d", resp.StatusCode, http.StatusOK)
-	}
+	assert.Equal(t, resp.StatusCode, http.StatusOK)
 }
