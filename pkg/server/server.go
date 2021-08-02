@@ -282,16 +282,11 @@ func (s *Server) summarizeWorkerStates() int {
 	states := make(map[messages.WorkerState]int)
 
 	for _, worker := range s.workerService.workers {
-		// S1036 – Unnecessary guard around map access
-		// https://staticcheck.io/docs/checks#S1036
-		/****
 		if _, ok := states[worker.state]; ok {
 			states[worker.state]++
 		} else {
 			states[worker.state] = 1
 		}
-		****/
-		states[worker.state] += 1
 	}
 
 	if val, ok := states[messages.WorkerStateDone]; ok && val == len(s.workerService.workers) {
