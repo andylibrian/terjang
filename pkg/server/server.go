@@ -127,8 +127,8 @@ func (s *Server) setupRouter() (*httprouter.Router, error) {
 
 	router.GET("/healthz", s.handleHealthz)
 
-	router.GET("/api/v1/server_info", s.handleServerInfo)
-	router.GET("/api/v1/workers_info", s.handleWorkersInfo)
+	router.GET("/api/v1/server_info", s.HandleServerInfo)
+	router.GET("/api/v1/workers_info", s.HandleWorkersInfo)
 
 	// CORS
 	router.GlobalOPTIONS = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -345,7 +345,7 @@ func (s *Server) handleHealthz(responseWriter http.ResponseWriter, req *http.Req
 	responseWriter.WriteHeader(200)
 }
 
-func (s *Server) handleServerInfo(responseWriter http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+func (s *Server) HandleServerInfo(responseWriter http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	serverInfo := messages.ServerInfo{NumOfWorkers: len(s.workerService.workers), State: loadTestStateToString(s.loadTestState)}
 	serverInfoMsg, _ := json.Marshal(serverInfo)
 
@@ -355,7 +355,7 @@ func (s *Server) handleServerInfo(responseWriter http.ResponseWriter, req *http.
 	responseWriter.WriteHeader(200)
 	responseWriter.Write([]byte(serverInfoMsg))
 }
-func (s *Server) handleWorkersInfo(responseWriter http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+func (s *Server) HandleWorkersInfo(responseWriter http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	// Workers Info
 	var wks []*worker
 	for _, v := range s.workerService.workers {
