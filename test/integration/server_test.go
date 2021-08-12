@@ -2,6 +2,7 @@ package integration
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -49,7 +50,7 @@ func TestHandleServerInfo(t *testing.T) {
 		}
 		bodyString := string(bodyBytes)
 		json.Unmarshal([]byte(bodyString), &ServerInfo)
-		log.Printf(bodyString)
+		fmt.Println(bodyString)
 		log.Printf("Num of Workers: %d, States: %s", ServerInfo.Num_of_workers, ServerInfo.State)
 
 		var expectedNumOfWorkers = 0
@@ -68,9 +69,39 @@ func TestHandleServerInfo(t *testing.T) {
 		"state":""
 	}
 **********************************/
+type Latencies struct {
+	Total string
+	Mean  string
+	/**********
+	50th string
+	90th string
+	95th string
+	99th string
+	**********/
+	Max string
+	Min string
+}
+type Bytes struct {
+	Total string
+	Mean  string
+}
+
+type Metrics struct {
+	Duration     string
+	Requests     string
+	Rate         string
+	Throughput   string
+	Success      string
+	Latencies    Latencies
+	Bytes_in     Bytes
+	Bytes_out    Bytes
+	Status_codes string
+	Errors       string
+}
 type WorkersStruct struct {
-	name  string
-	State string
+	Name    string
+	Metrics Metrics
+	State   string
 }
 
 func TestHandleWorkersInfo(t *testing.T) {
@@ -106,19 +137,24 @@ func TestHandleWorkersInfo(t *testing.T) {
 	//assert.Equal(t, resp.StatusCode, http.StatusOK)
 
 	if resp.StatusCode == http.StatusOK {
-		var WorkerInfo WorkersStruct
+		//var WorkerInfo WorkersStruct
+
 		bodyBytes, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			log.Fatal(err)
 		}
 		bodyString := string(bodyBytes)
-		json.Unmarshal([]byte(bodyString), &WorkerInfo)
 
-		log.Printf(bodyString)
-		log.Printf("Name: %s", WorkerInfo.name)
+		var result WorkersStruct
 
-		var expectedName = "worker1"
-		assert.Equal(expectedName, WorkerInfo.name, "The two number of workers should be the same")
+		//ref. https://play.golang.org/p/zOUMUNH4w9
+		json.Unmarshal([]byte(bodyString), &result)
+
+		fmt.Println(bodyString)
+		fmt.Println(result)
+
+		//var expectedName = "worker1"
+		//assert.Equal(expectedName, WorkerInfo.name, "The two number of workers should be the same")
 
 	} else {
 		assert.Equal(resp.StatusCode, http.StatusOK)
