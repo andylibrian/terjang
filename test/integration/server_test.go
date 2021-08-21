@@ -13,6 +13,7 @@ import (
 	"github.com/andylibrian/terjang/pkg/server"
 	"github.com/andylibrian/terjang/pkg/worker"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 /*********************************
@@ -21,14 +22,8 @@ import (
 		"state":"NotStarted"
 	}
 **********************************/
-type ServerStruct struct {
-	Num_of_workers int
-	State          string
-}
 
 func TestHandleServerInfo(t *testing.T) {
-
-	assert := assert.New(t)
 
 	//Mock server
 	server := server.NewServer()
@@ -43,24 +38,22 @@ func TestHandleServerInfo(t *testing.T) {
 
 	resp := w.Result()
 
-	if resp.StatusCode == http.StatusOK {
-		var ServerInfo ServerStruct
-		bodyBytes, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			log.Fatal(err)
-		}
-		bodyString := string(bodyBytes)
-		json.Unmarshal([]byte(bodyString), &ServerInfo)
-		fmt.Println(bodyString)
-		log.Printf("Num of Workers: %d, States: %s", ServerInfo.Num_of_workers, ServerInfo.State)
+	require.Equal(t, resp.StatusCode, http.StatusOK)
 
-		var expectedNumOfWorkers = 0
-		var expectedState = "NotStarted"
-		assert.Equal(expectedNumOfWorkers, ServerInfo.Num_of_workers, "The two number of workers should be the same")
-		assert.Equal(expectedState, ServerInfo.State, "The two states should be the same")
-	} else {
-		assert.Equal(resp.StatusCode, http.StatusOK)
+	var ServerResult messages.ServerInfo
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
 	}
+	bodyString := string(bodyBytes)
+	json.Unmarshal([]byte(bodyString), &ServerResult)
+	fmt.Println(bodyString)
+	log.Printf("Num of Workers: %d, States: %s", ServerResult.NumOfWorkers, ServerResult.State)
+
+	var expectedNumOfWorkers = 0
+	var expectedState = "NotStarted"
+	assert.Equal(t, expectedNumOfWorkers, ServerResult.NumOfWorkers, "The two number of workers should be the same")
+	assert.Equal(t, expectedState, ServerResult.State, "The two states should be the same")
 
 }
 
@@ -71,8 +64,6 @@ type WorkersStruct struct {
 }
 
 func TestHandleWorkersInfo(t *testing.T) {
-
-	assert := assert.New(t)
 
 	//Mock server
 	server := server.NewServer()
@@ -100,25 +91,22 @@ func TestHandleWorkersInfo(t *testing.T) {
 
 	resp := w.Result()
 
-	if resp.StatusCode == http.StatusOK {
+	require.Equal(t, resp.StatusCode, http.StatusOK)
 
-		bodyBytes, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			log.Fatal(err)
-		}
-		bodyString := string(bodyBytes)
-
-		var result []WorkersStruct
-
-		err = json.Unmarshal([]byte(bodyString), &result)
-		if err != nil {
-			panic(err)
-		}
-
-		var expectedName = "worker1"
-		assert.Equal(expectedName, result[0].Name, "The two number of workers should be the same")
-
-	} else {
-		assert.Equal(resp.StatusCode, http.StatusOK)
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
 	}
+	bodyString := string(bodyBytes)
+
+	var result []WorkersStruct
+
+	err = json.Unmarshal([]byte(bodyString), &result)
+	if err != nil {
+		panic(err)
+	}
+
+	var expectedName = "worker1"
+	assert.Equal(t, expectedName, result[0].Name, "The two number of workers should be the same")
+
 }
