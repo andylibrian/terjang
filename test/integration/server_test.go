@@ -25,7 +25,6 @@ import (
 
 func TestHandleServerInfo(t *testing.T) {
 
-	//Mock server
 	server := server.NewServer()
 	go server.Run("127.0.0.1:9029")
 	defer server.Close()
@@ -65,7 +64,6 @@ type WorkersStruct struct {
 
 func TestHandleWorkersInfo(t *testing.T) {
 
-	//Mock server
 	server := server.NewServer()
 	go server.Run("127.0.0.1:9019")
 	defer server.Close()
