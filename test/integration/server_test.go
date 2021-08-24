@@ -2,7 +2,6 @@ package integration
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -35,11 +34,11 @@ func TestHandleServerInfo(t *testing.T) {
 	var ServerResult messages.ServerInfo
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 
 	json.Unmarshal(bodyBytes, &ServerResult)
-	fmt.Println(string(bodyBytes))
+	log.Printf("%s", string(bodyBytes))
 	log.Printf("Num of Workers: %d, States: %s", ServerResult.NumOfWorkers, ServerResult.State)
 
 	assert.Equal(t, 0, ServerResult.NumOfWorkers)
@@ -47,7 +46,7 @@ func TestHandleServerInfo(t *testing.T) {
 
 }
 
-type WorkersStruct struct {
+type WorkerStruct struct {
 	Name    string                         `json:"name"`
 	Metrics messages.WorkerLoadTestMetrics `json:"metrics"`
 	State   string                         `json:"state"`
@@ -84,10 +83,10 @@ func TestHandleWorkersInfo(t *testing.T) {
 
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 
-	var result []WorkersStruct
+	var result []WorkerStruct
 
 	err = json.Unmarshal(bodyBytes, &result)
 	if err != nil {
