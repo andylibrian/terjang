@@ -90,7 +90,7 @@ func TestHandleWorkersInfo(t *testing.T) {
 
 	err = json.Unmarshal(bodyBytes, &result)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
 	assert.Equal(t, "worker1", result[0].Name)
