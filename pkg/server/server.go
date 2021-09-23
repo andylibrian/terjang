@@ -19,7 +19,7 @@ import (
 	"github.com/rakyll/statik/fs"
 
 	// Import statik package
-	_ "github.com/andylibrian/terjang/"
+	_ "github.com/andylibrian/terjang"
 	_ "github.com/andylibrian/terjang/pkg/server/statik"
 )
 
