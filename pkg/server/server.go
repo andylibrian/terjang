@@ -18,9 +18,7 @@ import (
 
 	"github.com/rakyll/statik/fs"
 
-	// Import statik package
-	_ "github.com/andylibrian/terjang"
-	_ "github.com/andylibrian/terjang/pkg/server/statik"
+	"github.com/andylibrian/terjang/web"
 )
 
 var logger *zap.SugaredLogger
@@ -147,7 +145,7 @@ func (s *Server) setupRouter() (*httprouter.Router, error) {
 
 func serveStatikFile(path string) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-		contents, err := f.ReadFile(path)
+		contents, err := web.WebDistFs.ReadFile(path)
 		if err != nil {
 			log.Fatal(err)
 		}
