@@ -16,8 +16,6 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"go.uber.org/zap"
 
-	"github.com/rakyll/statik/fs"
-
 	"github.com/andylibrian/terjang/web"
 )
 
@@ -105,18 +103,14 @@ func (s *Server) Close() error {
 }
 
 func (s *Server) setupRouter() (*httprouter.Router, error) {
-	statikFs, err := fs.New()
-	if err != nil {
-		return nil, err
-	}
 
 	router := httprouter.New()
 
 	// static files
 	router.GET("/", serveStatikFile("/index.html"))
 	router.GET("/favicon.ico", serveStatikFile("/favicon.ico"))
-	router.Handler("GET", "/js/*filepath", http.FileServer(statikFs))
-	router.Handler("GET", "/css/*filepath", http.FileServer(statikFs))
+	router.Handler("GET", "/js/*filepath", http.FileServer(http.FS(web.WebDistFs)))
+	router.Handler("GET", "/css/*filepath", http.FileServer(http.FS(web.WebDistFs)))
 
 	router.GET("/cluster/join", s.acceptWorkerConn)
 	router.GET("/notifications", s.acceptNotificationConn)
