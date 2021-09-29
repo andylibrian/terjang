@@ -142,9 +142,7 @@ func (s *Server) setupRouter() (*httprouter.Router, error) {
 
 func serveStatikFile(path string) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-
 		contents, err := web.WebDistFs.ReadFile(path)
-
 		if err != nil {
 			log.Fatal(err)
 		}
