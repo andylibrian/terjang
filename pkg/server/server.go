@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
@@ -104,13 +105,15 @@ func (s *Server) Close() error {
 
 func (s *Server) setupRouter() (*httprouter.Router, error) {
 
+	sub, _ := fs.Sub(web.WebDistFs, "dist")
+
 	router := httprouter.New()
 
 	// static files
-	router.GET("/", serveStatikFile("/index.html"))
-	router.GET("/favicon.ico", serveStatikFile("/favicon.ico"))
-	router.Handler("GET", "/js/*filepath", http.FileServer(http.FS(web.WebDistFs)))
-	router.Handler("GET", "/css/*filepath", http.FileServer(http.FS(web.WebDistFs)))
+	router.GET("/", serveStatikFile("dist/index.html"))
+	router.GET("/favicon.ico", serveStatikFile("dist/favicon.ico"))
+	router.Handler("GET", "/js/*filepath", http.FileServer(http.FS(sub)))
+	router.Handler("GET", "/css/*filepath", http.FileServer(http.FS(sub)))
 
 	router.GET("/cluster/join", s.acceptWorkerConn)
 	router.GET("/notifications", s.acceptNotificationConn)
@@ -139,7 +142,9 @@ func (s *Server) setupRouter() (*httprouter.Router, error) {
 
 func serveStatikFile(path string) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+
 		contents, err := web.WebDistFs.ReadFile(path)
+
 		if err != nil {
 			log.Fatal(err)
 		}
