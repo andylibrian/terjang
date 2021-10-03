@@ -110,8 +110,8 @@ func (s *Server) setupRouter() (*httprouter.Router, error) {
 	router := httprouter.New()
 
 	// static files
-	router.GET("/", serveStatikFile("dist/index.html"))
-	router.GET("/favicon.ico", serveStatikFile("dist/favicon.ico"))
+	router.GET("/", serveFromEmbed("dist/index.html"))
+	router.GET("/favicon.ico", serveFromEmbed("dist/favicon.ico"))
 	router.Handler("GET", "/js/*filepath", http.FileServer(http.FS(sub)))
 	router.Handler("GET", "/css/*filepath", http.FileServer(http.FS(sub)))
 
@@ -140,7 +140,7 @@ func (s *Server) setupRouter() (*httprouter.Router, error) {
 	return router, nil
 }
 
-func serveStatikFile(path string) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+func serveFromEmbed(path string) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		contents, err := web.WebDistFs.ReadFile(path)
 		if err != nil {
