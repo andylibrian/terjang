@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/fs"
 	"log"
 	"net/http"
 	"os"
@@ -17,7 +16,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"go.uber.org/zap"
 
-	"github.com/andylibrian/terjang/web"
+	webDist "github.com/andylibrian/terjang/web/dist"
 )
 
 var logger *zap.SugaredLogger
@@ -104,16 +103,13 @@ func (s *Server) Close() error {
 }
 
 func (s *Server) setupRouter() (*httprouter.Router, error) {
-
-	sub, _ := fs.Sub(web.WebDistFs, "dist")
-
 	router := httprouter.New()
 
 	// static files
-	router.GET("/", serveFromEmbed("dist/index.html"))
-	router.GET("/favicon.ico", serveFromEmbed("dist/favicon.ico"))
-	router.Handler("GET", "/js/*filepath", http.FileServer(http.FS(sub)))
-	router.Handler("GET", "/css/*filepath", http.FileServer(http.FS(sub)))
+	router.GET("/", serveFromEmbed("index.html"))
+	router.GET("/favicon.ico", serveFromEmbed("favicon.ico"))
+	router.Handler("GET", "/js/*filepath", http.FileServer(http.FS(webDist.StaticFiles)))
+	router.Handler("GET", "/css/*filepath", http.FileServer(http.FS(webDist.StaticFiles)))
 
 	router.GET("/cluster/join", s.acceptWorkerConn)
 	router.GET("/notifications", s.acceptNotificationConn)
@@ -142,7 +138,7 @@ func (s *Server) setupRouter() (*httprouter.Router, error) {
 
 func serveFromEmbed(path string) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-		contents, err := web.WebDistFs.ReadFile(path)
+		contents, err := webDist.StaticFiles.ReadFile(path)
 		if err != nil {
 			log.Fatal(err)
 		}
