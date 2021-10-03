@@ -5,6 +5,8 @@ on: [push, pull_request]
 jobs:
   build-and-test:
     runs-on: ubuntu-20.04
+    permissions:
+      packages: write
     steps:
       # setup
       - uses: actions/checkout@v2
